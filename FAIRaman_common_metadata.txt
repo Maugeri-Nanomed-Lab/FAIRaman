@@ -1,0 +1,150 @@
+################################################################################
+#  FAIRaman – Project and Experiment-Level Metadata Template
+#  Version : 1.0  |  Compatible with FAIRaman v0.1.1+
+#  GitHub  : https://github.com/Maugeri-Nanomed-Lab/FAIRaman
+#
+#  PURPOSE
+#  -------
+#  This file defines metadata that is COMMON TO ALL SPECTRA in the dataset.
+#  All fields here are applied uniformly to every spectrum loaded by FAIRaman.py.
+#
+#  For per-spectrum metadata (sample_id, donor_id, diagnosis, etc.) use the
+#  companion Excel file:  FAIRaman_metadata_template.xlsx  (sheet: DATA)
+#
+#  SYNTAX RULES
+#  ------------
+#  • Lines starting with '#' are comments – ignored by FAIRaman.py
+#  • Each field follows the pattern:   field_name = value
+#  • Do NOT add extra spaces around '='
+#  • Leave the value EMPTY (field_name = ) if the information is not available
+#  • Dates must follow ISO 8601:  YYYY-MM-DD  or  YYYY-MM-DDTHH:MM:SS
+#  • Do NOT delete field lines – the parser expects the full schema
+#
+#  MANDATORY fields are marked with  [M]
+#  RECOMMENDED fields are marked with [R]
+#  OPTIONAL fields are marked with   [O]
+#
+################################################################################
+
+
+################################################################################
+#  GROUP 1 – PROJECT
+#  Stored in HDF5 group:  /PROJECT  (NXcollection)
+################################################################################
+
+# [M] Short human-readable name for this study / dataset
+project_name = 
+
+# [M] Unique identifier for the project (e.g. grant number, internal code)
+project_id = 
+
+# [R] Funding source(s), comma-separated
+funding = 
+
+# [M] Full name of the primary responsible author / data steward
+author = 
+
+# [R] Persistent identifier of the author (ORCID preferred)
+#     Format:  https://orcid.org/0000-0000-0000-0000
+author_id = 
+
+# [M] Data license governing reuse of this dataset
+#     Recommended values:
+#       CC BY 4.0          – Attribution
+#       CC BY-NC 4.0       – Attribution, Non-Commercial
+#       CC0 1.0            – Public Domain
+#       proprietary        – restricted use, contact author
+data_license = 
+
+# [M] Accessibility status of the dataset
+#     Allowed values: open | restricted | embargoed | closed
+accessibility = 
+
+# [R] Comma-separated keywords describing the dataset content
+#     Example: breast cancer, FFPE, Raman spectroscopy, diagnosis
+keywords = 
+
+
+################################################################################
+#  GROUP 2 – INSTRUMENT
+#  Stored in HDF5 group:  /ENTRY/instrument  (NXinstrument)
+#  These fields describe the Raman system used for ALL spectra in this file.
+#  If different spectra used different instruments, use per-spectrum Excel fields.
+################################################################################
+
+# [M] Instrument name / model
+#     If commercial: Manufacturer + Model  (e.g. Renishaw inVia Qontor)
+#     If custom-built: describe optical components
+instrument_name = 
+
+# [M] Excitation laser wavelength in nm  (numeric value only)
+laser_wavelength = 
+
+# [M] Unit for laser wavelength  (always: nm)
+laser_wavelength_units = nm
+
+# [R] Laser power at the sample in mW  (numeric value only)
+laser_power_mW = 
+
+# [R] Notch / edge filter description  (e.g. 785 nm edge filter, none)
+laser_filter = 
+
+# [R] Microscope objective used
+#     Format: Manufacturer, Magnification, NA, Immersion
+#     Example: Leica, 50x, 0.75, air
+objective = 
+
+# [R] Spectral grating (lines/mm)  (e.g. 1200, 1800, 785)
+grating_lines_per_mm = 
+
+# [R] Detector type  (e.g. CCD, EMCCD, InGaAs)
+detector_type = 
+
+# [R] Spectral range of measurement (cm⁻¹)
+#     Format:  min_wavenumber - max_wavenumber   (e.g. 400 - 3000)
+spectral_range_cm1 = 
+
+# [R] Spectral resolution in cm⁻¹
+spectral_resolution_cm1 = 
+
+# [R] Raman technique used
+#     Allowed values (comma-separate if combined):
+#       spontaneous | SERS | TERS | SORS | FT-Raman | time-gated
+raman_technique = spontaneous
+
+
+################################################################################
+#  GROUP 3 – EXPERIMENT
+#  Stored in HDF5 group:  /ENTRY  (NXentry → NXraman)
+#  Fields shared by all acquisitions in this session.
+################################################################################
+
+# [M] Short descriptive title of the experiment
+experiment_title = 
+
+# [M] Type of experiment / scientific aim
+#     Example: cancer diagnosis, drug monitoring, tissue classification
+experiment_type = 
+
+# [R] Preprocessing steps already applied BEFORE loading into FAIRaman
+#     List comma-separated steps  (e.g. cosmic-ray removal, baseline correction)
+preprocessing_applied = 
+
+# [R] Date and time of the measurement session  (ISO 8601)
+#     Example: 2024-06-01T09:00:00
+session_start_time = 
+
+# [R] Operator / analyst who performed the measurements
+operator = 
+
+# [O] Location / laboratory where measurements were performed
+laboratory = 
+
+# [O] Any additional free-text notes about the experimental session
+experiment_notes = 
+
+
+################################################################################
+#  END OF FILE
+#  Save this file as  FAIRaman_experiment.txt  and load it in FAIRaman.py
+################################################################################
