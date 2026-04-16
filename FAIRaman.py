@@ -911,35 +911,34 @@ def export_csv(data: dict, out_path: Path) -> None:
 
 def export_json(metadata: dict, mappings: dict, out_path: Path) -> None:
     """
-    Esporta un file JSON metadata 
+    Esporta un file JSON sidecar con i soli metadati mappati (flat_data)
+    e il dizionario di mappatura dei campi (campo sorgente → percorso HDF5).
 
-    documenta sia i valori dei metadati sia la mappatura dei campi (campo sorgente → percorso HDF5) 
-    applicata durante la conversione
-
-    gli scalari e gli array di NumPy vengono serializzati usando 'NumpyEncoder'
-    per garantire la compatibilità JSON indipendentemente dalla fonte dei dati
+    Le sezioni raw (excel_row, txt_meta) vengono escluse perché ridondanti:
+    flat_data contiene già tutti i valori, correttamente indicizzati
+    sui percorsi HDF5 dello schema NXraman/MIABIS.
 
     Parametri
     ----------
     metadata : dict
-        Dizionario dei metadati generato durante la pipeline di conversione
+        Dizionario dei metadati generato durante la pipeline di conversione.
+        Deve contenere la chiave 'flat_data'.
     mappings : dict
         Dizionario di mappatura dei campi (chiave sorgente → percorso HDF5)
     out_path : Path
         Destinazione del file JSON
     """
-    output: dict = {"metadata": {}, "mappings": mappings}
-    for section, content in metadata.items():
-        if isinstance(content, dict):
-            output["metadata"][section] = {
-                k: (v.tolist() if isinstance(v, np.ndarray) else v)
-                for k, v in content.items()
-            }
-        elif isinstance(content, np.ndarray):
-            output["metadata"][section] = content.tolist()
-        else:
-            output["metadata"][section] = content
-
+    flat = metadata.get("flat_data", {})
+    flat_serializable = {
+        k: (v.tolist() if isinstance(v, np.ndarray) else v)
+        for k, v in flat.items()
+    }
+    output: dict = {
+        "metadata": {
+            "flat_data": flat_serializable,
+        },
+        "mappings": mappings,
+    }
     with open(out_path, "w", encoding="utf-8") as fh:
         json.dump(output, fh, indent=2, ensure_ascii=False, cls=NumpyEncoder)
 
