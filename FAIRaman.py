@@ -775,20 +775,6 @@ def write_hdf5_nexus(out_path: Path, data: dict, metadata: dict,
                 if hdf_path and hdf_path != "Do not map":
                     flat_data[hdf_path] = metadata.get("txt", {}).get(key, "")
 
-    # ── Backward compatibility: 'objective' → 'optical_lens_type' ────────────
-    # Prior to FAIRaman v1.0, the optical system field was named 'objective'
-    # following the legacy WiRE terminology. Both old path variants are
-    # transparently migrated to the current NXraman-compliant field name.
-    # è una check in più quasi inutile ma meglio averlo 
-    _new_lens = "ENTRY.instrument.optical_system.objective"
-    for _old in (
-        "ENTRY.instrument.optical_system.objective",
-        "ENTRY.instrument.optical_system.objective",
-    ):
-        if _old in flat_data and _new_lens not in flat_data:
-            flat_data[_new_lens] = flat_data[_old]
-            print(f"[FAIRaman] INFO: Migrated deprecated field '{_old}' → '{_new_lens}'")
-
     # ── Auto-populate fields derived from the raw data ────────────────────────
     # Laser wavelength: extracted from WDF header; fall back to empty string
     # (l'utente deve darlo tramite il metadata TXT per input ASCII).
