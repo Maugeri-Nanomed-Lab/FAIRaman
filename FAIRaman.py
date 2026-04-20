@@ -911,7 +911,7 @@ def export_csv(data: dict, out_path: Path) -> None:
     pd.DataFrame(flat, columns=columns).to_csv(out_path, index=False)
 
 
-def export_json(metadata: dict, mappings: dict, out_path: Path) -> None:
+def export_json(metadata: dict, out_path: Path) -> None:
     """
     Esporta un file JSON sidecar con i soli metadati mappati (flat_data)
     e il dizionario di mappatura dei campi (campo sorgente → percorso HDF5).
@@ -935,12 +935,7 @@ def export_json(metadata: dict, mappings: dict, out_path: Path) -> None:
         k: (v.tolist() if isinstance(v, np.ndarray) else v)
         for k, v in flat.items()
     }
-    output: dict = {
-        "metadata": {
-            "flat_data": flat_serializable,
-        },
-        "mappings": mappings,
-    }
+    output: dict = flat_serializable
     with open(out_path, "w", encoding="utf-8") as fh:
         json.dump(output, fh, indent=2, ensure_ascii=False, cls=NumpyEncoder)
 
@@ -1511,7 +1506,7 @@ def _run_conversion_wdf(state: dict, frames: dict,
             if var_hdf5.get():
                 write_hdf5_nexus(out_dir / f"{stem}.h5", spec_data, metadata, mappings)
             if var_json.get():
-                export_json(metadata, mappings, out_dir / f"{stem}.json")
+                export_json(metadata, out_dir / f"{stem}.json")
             if var_csv.get():
                 export_csv(spec_data, out_dir / f"{stem}.csv")
 
@@ -1627,7 +1622,7 @@ def _run_conversion_txt(state: dict, frames: dict,
             if var_hdf5.get():
                 write_hdf5_nexus(out_dir / f"{stem}.h5", spec_data, metadata, mappings)
             if var_json.get():
-                export_json(metadata, mappings, out_dir / f"{stem}.json")
+                export_json(metadata, out_dir / f"{stem}.json")
             if var_csv.get():
                 export_csv(spec_data, out_dir / f"{stem}.csv")
 
