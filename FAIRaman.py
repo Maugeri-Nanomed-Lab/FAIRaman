@@ -867,6 +867,7 @@ def write_hdf5_nexus(out_path: Path, data: dict, metadata: dict,
             if data["acquisition_map"] is not None:
                 map_grp = aux.create_group("acquisition_map")
                 map_grp.attrs["NX_class"] = "NXdata"
+                map_grp.attrs["signal"]   = "image"
                 map_ds = map_grp.create_dataset(
                     "image", data=data["acquisition_map"], compression="gzip"
                 )
