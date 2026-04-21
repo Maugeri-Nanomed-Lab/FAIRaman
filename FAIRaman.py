@@ -1342,7 +1342,7 @@ def _load_metadata_sources(state: dict, frames: dict) -> tuple:
         except Exception as exc:
             print(f"[FAIRaman] WARNING: Could not load Excel file: {exc}")
 
-    return txt_meta, excel_df, excel_metadata_map, filename_col, fallback_row
+    return txt_meta, excel_df, excel_metadata_map, filename_col, empty_row
 
 
 def _assemble_flat_data(txt_meta: dict, excel_row: dict,
@@ -1453,7 +1453,7 @@ def _run_conversion_wdf(state: dict, frames: dict,
         return
 
     try:
-        txt_meta, _, excel_map, filename_col, fallback_row = (
+        txt_meta, _, excel_map, filename_col, empty_row = (
             _load_metadata_sources(state, frames)
         )
     except Exception as exc:
@@ -1498,7 +1498,7 @@ def _run_conversion_wdf(state: dict, frames: dict,
                     continue
             else:
                 # No Excel file loaded — convert with TXT metadata only
-                excel_row = fallback_row
+                excel_row = empty_row
 
             flat_data = _assemble_flat_data(txt_meta, excel_row, frames)
             metadata  = {"flat_data": flat_data, "excel_row": excel_row,
@@ -1562,7 +1562,7 @@ def _run_conversion_txt(state: dict, frames: dict,
         return
 
     try:
-        txt_meta, _, excel_map, filename_col, fallback_row = (
+        txt_meta, _, excel_map, filename_col, empty_row = (
             _load_metadata_sources(state, frames)
         )
     except Exception as exc:
@@ -1614,7 +1614,7 @@ def _run_conversion_txt(state: dict, frames: dict,
                     print(f"[FAIRaman] SKIP {stem}: {msg}")
                     continue
             else:
-                excel_row = fallback_row
+                excel_row = empty_row
 
             flat_data = _assemble_flat_data(txt_meta, excel_row, frames)
             metadata  = {"flat_data": flat_data, "excel_row": excel_row,
