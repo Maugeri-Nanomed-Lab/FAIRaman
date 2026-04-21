@@ -1532,7 +1532,7 @@ def _run_conversion_txt(state: dict, frames: dict,
                         var_csv: tk.BooleanVar, progress_var: tk.StringVar,
                         progress_bar: ttk.Progressbar, root: tk.Tk) -> None:
 
-    """
+        """
     Esegue la conversione batch di file spettrali ASCII nel formato FAIRaman HDF5/NeXus.
 
     La logica è la stessa di `_run_conversion_wdf`, ma applicata a file spettrali
@@ -1544,10 +1544,10 @@ def _run_conversion_txt(state: dict, frames: dict,
     `_get_excel_row` della pipeline WDF, così il comportamento di matching resta
     coerente tra i due flussi.
 
-    Se per un file non viene trovata una riga corrispondente in Excel, invece di
-    saltarlo viene usata come fallback la prima riga del foglio (con un avviso).
-    Questo perché gli spettri ASCII spesso rappresentano acquisizioni singole
-    che condividono gli stessi metadati di campione.
+    I file per cui non viene trovata una riga corrispondente in Excel vengono
+    saltati e segnalati nel riepilogo finale. Se non viene fornito alcun file
+    Excel, tutti i file vengono comunque convertiti utilizzando solo i
+    metadati del TXT.
     """
     if not all(state["paths"].get(k) for k in ("spectra_dir", "txt", "out")):
         messagebox.showerror(
