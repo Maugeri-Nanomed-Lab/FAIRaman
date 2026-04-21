@@ -755,7 +755,6 @@ def write_hdf5_nexus(out_path: Path, data: dict, metadata: dict) -> None:
         ai valori dei metadati
         può contenere anceh le chiavi ``excel_row`` e ``txt_meta`` a scopo di debug
     """
-    metadata["flat_data"] = flat_data
     flat_data = metadata["flat_data"].copy()
     
     # ── Auto-populate fields derived from the raw data ────────────────────────
