@@ -791,7 +791,7 @@ def write_hdf5_nexus(out_path: Path, data: dict, metadata: dict,
         flat_data[wu_path] = "nm"
 
     # Spectral count: total number of acquired spectra (ny × nx)
-    sc_path = "ENTRY.measurement.spectral_count"
+    sc_path = "ENTRY.data.spectral_count"
     if not flat_data.get(sc_path):
         flat_data[sc_path] = int(data["cube"].shape[0] * data["cube"].shape[1])
 
@@ -835,6 +835,11 @@ def write_hdf5_nexus(out_path: Path, data: dict, metadata: dict,
         data_grp.create_dataset("raman_shift", data=data["raman_shift"])
         data_grp.create_dataset("x",           data=data["x_axis"])
         data_grp.create_dataset("y",           data=data["y_axis"])
+        ny, nx, n_wn = data["cube"].shape
+        data_grp.attrs["spectral_count"] = int(ny * nx)
+        data_grp.attrs["nx"]             = int(nx)
+        data_grp.attrs["ny"]             = int(ny)
+        data_grp.attrs["n_wavenumbers"]  = int(n_wn)
 
         # 3. Write auxiliary images (white-light and acquisition map; WDF only)
         if data["white_light"] is not None or data["acquisition_map"] is not None:
