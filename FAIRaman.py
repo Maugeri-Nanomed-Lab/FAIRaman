@@ -1507,8 +1507,7 @@ def _run_conversion_txt(state: dict, frames: dict,
                         var_hdf5: tk.BooleanVar, var_json: tk.BooleanVar,
                         var_csv: tk.BooleanVar, progress_var: tk.StringVar,
                         progress_bar: ttk.Progressbar, root: tk.Tk) -> None:
-
-        """
+    """
     Esegue la conversione batch di file spettrali ASCII nel formato FAIRaman HDF5/NeXus.
 
     La logica è la stessa di `_run_conversion_wdf`, ma applicata a file spettrali
