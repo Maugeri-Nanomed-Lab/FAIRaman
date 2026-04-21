@@ -1,23 +1,21 @@
 ## FAIRaman metadata schema
 
-Campi dello schema FAIRaman, organizzati per gruppo. Tutti i campi sono
-scritti nel file HDF5 anche quando vuoti, per garantire struttura
-omogenea tra tutti i file prodotti.
+Fields included in the FAIRaman scheme. All fields are written even if remain empty for compatibility with possible federated learning architecture
 
 ---
 
-### `PROJECT` — contesto dello studio
+### `PROJECT` — Identification of the contex in witch data were collected, and condition of use of the data
 
 | Field           | Description            | Example                                          | Source |
 | --------------- | ---------------------- | ------------------------------------------------ | ------ |
-| `project_name`  | Nome del progetto      | Spectra-BREAST                                   |        |
-| `project_id`    | ID del progetto        | 101187508                                        |        |
-| `funding`       | Ente finanziatore      | European Innovation Council                      |        |
-| `author`        | Autore/autori          | Davide Piccapietra                               |        |
-| `author_id`     | ID autore/autori       | PCCDVD03                                         |        |
-| `data_license`  | Licenza dati           | restricted                                       |        |
-| `accessibility` | Accessibilità dati     | upon reasonable request                          |        |
-| `keywords`      | Parole chiave          | Breast Cancer; Tissue Analysis; Surgical Margins |        |
+| `project_name`  | Name of the project    | Spectra-BREAST                                   |        |
+| `project_id`    | Project ID             | 101187508                                        |        |
+| `funding`       | Funding                | European Innovation Council                      |        |
+| `author`        | Data author            | Davide Piccapietra                               |        |
+| `author_id`     | Orcid                  | 0000-0000-XXXX-XXXX                              |        |
+| `data_license`  | Licence                | restricted                                       |        |
+| `accessibility` | Accessibility          | upon reasonable request                          |        |
+| `keywords`      | keywords               | Breast Cancer; Tissue Analysis; Surgical Margins |        |
 
 ---
 
