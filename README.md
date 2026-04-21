@@ -158,7 +158,7 @@ This structure enables:
 - direct compatibility with machine learning workflows
 - integration with clinical data systems
 
----
+```text
 FAIRaman.h5
 │
 ├── PROJECT  (NXcollection)          ← study-level context
@@ -212,7 +212,7 @@ FAIRaman.h5
     └── auxiliary  (NXcollection)    ← WDF mode only
         ├── white_light  (NXdata)
         └── acquisition_map  (NXdata)
----
+```
 
 ## Dependencies
 
