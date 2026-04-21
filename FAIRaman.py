@@ -163,7 +163,7 @@ NEXUS_SCHEMA = {
                 "NX_class": "NXcollection",
                 "fields": [
                     "exposure_time", "exposure_time_units",
-                    "spectral_count", "substrate", "accumulation_count"
+                    "substrate", "accumulation_count"
                 ]
             },
             "instrument": {
