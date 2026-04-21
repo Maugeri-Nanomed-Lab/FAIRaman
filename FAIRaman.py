@@ -754,9 +754,6 @@ def write_hdf5_nexus(out_path: Path, data: dict, metadata: dict) -> None:
         Deve contenere la chiave ``flat_data`` che mappa percorsi HDF5 separati da punti
         ai valori dei metadati
         può contenere anceh le chiavi ``excel_row`` e ``txt_meta`` a scopo di debug
-    mappings : dict or None
-        Parametro legacy mantenuto per compatibilità retroativa, 
-        non viene usato se `metadata['flat_data']` è presente
     """
     flat_data = metadata["flat_data"].copy()
     
@@ -1447,11 +1444,6 @@ def _run_conversion_wdf(state: dict, frames: dict,
     out_dir = state["paths"]["out"]
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    mappings = {
-        "excel": frames["excel"].get_mapping() if "excel" in frames else {},
-        "txt":   frames["txt"].get_mapping()   if "txt"   in frames else {},
-    }
-
     wdf_files = sorted({f for f in wdf_dir.glob("*") if f.suffix.lower() == ".wdf"})
     if not wdf_files:
         messagebox.showwarning("Warning", f"No WDF files found in:\n{wdf_dir}")
@@ -1555,11 +1547,6 @@ def _run_conversion_txt(state: dict, frames: dict,
 
     out_dir = state["paths"]["out"]
     out_dir.mkdir(parents=True, exist_ok=True)
-
-    mappings = {
-        "excel": frames["excel"].get_mapping() if "excel" in frames else {},
-        "txt":   frames["txt"].get_mapping()   if "txt"   in frames else {},
-    }
 
     # Collect input spectra, excluding the metadata TXT file if co-located
     meta_resolved = state["paths"]["txt"].resolve()
