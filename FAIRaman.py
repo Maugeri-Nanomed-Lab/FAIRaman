@@ -723,8 +723,7 @@ def _write_nexus_structure(h5grp: h5py.Group, schema: dict, data_dict: dict,
                     _write_dataset(grp, field, val)
 
 
-def write_hdf5_nexus(out_path: Path, data: dict, metadata: dict,
-                     mappings: dict | None = None) -> None:
+def write_hdf5_nexus(out_path: Path, data: dict, metadata: dict) -> None:
     """
     Scrive un file HDF5/NeXus FAIRaman a partire da dati spettrali e matadati
 
@@ -759,23 +758,8 @@ def write_hdf5_nexus(out_path: Path, data: dict, metadata: dict,
         Parametro legacy mantenuto per compatibilità retroativa, 
         non viene usato se `metadata['flat_data']` è presente
     """
-    if "flat_data" in metadata:
-        flat_data = metadata["flat_data"].copy()
-    else:
-        # Legacy fallback: reconstruct flat_data from raw mappings dicts
-        print(
-            "[FAIRaman] WARNING: Legacy metadata format detected. "
-            "Prefer passing pre-assembled flat_data."
-        )
-        flat_data: dict = {}
-        if mappings:
-            for col, hdf_path in mappings.get("excel", {}).items():
-                if hdf_path and hdf_path != "Do not map":
-                    flat_data[hdf_path] = metadata.get("excel", {}).get(col, "")
-            for key, hdf_path in mappings.get("txt", {}).items():
-                if hdf_path and hdf_path != "Do not map":
-                    flat_data[hdf_path] = metadata.get("txt", {}).get(key, "")
-
+    flat_data = metadata["flat_data"].copy()
+    
     # ── Auto-populate fields derived from the raw data ────────────────────────
     # Laser wavelength: extracted from WDF header; fall back to empty string
     # (l'utente deve darlo tramite il metadata TXT per input ASCII).
@@ -1506,7 +1490,7 @@ def _run_conversion_wdf(state: dict, frames: dict,
             spec_data = process_wdf(wdf_path)
 
             if var_hdf5.get():
-                write_hdf5_nexus(out_dir / f"{stem}.h5", spec_data, metadata, mappings)
+                write_hdf5_nexus(out_dir / f"{stem}.h5", spec_data, metadata)
             if var_json.get():
                 export_json(metadata, out_dir / f"{stem}.json")
             if var_csv.get():
@@ -1622,7 +1606,7 @@ def _run_conversion_txt(state: dict, frames: dict,
             spec_data = process_txt_spectrum(sp_path)
 
             if var_hdf5.get():
-                write_hdf5_nexus(out_dir / f"{stem}.h5", spec_data, metadata, mappings)
+                write_hdf5_nexus(out_dir / f"{stem}.h5", spec_data, metadata)
             if var_json.get():
                 export_json(metadata, out_dir / f"{stem}.json")
             if var_csv.get():
