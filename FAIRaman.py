@@ -918,8 +918,7 @@ def export_csv(data: dict, out_path: Path) -> None:
 
 def export_json(metadata: dict, out_path: Path) -> None:
     """
-    Esporta un file JSON sidecar con i soli metadati mappati (flat_data)
-    e il dizionario di mappatura dei campi (campo sorgente → percorso HDF5).
+    Esporta un file JSON sidecar con i soli metadati mappati (flat_data).
 
     Le sezioni raw (excel_row, txt_meta) vengono escluse perché ridondanti:
     flat_data contiene già tutti i valori, correttamente indicizzati
@@ -930,10 +929,8 @@ def export_json(metadata: dict, out_path: Path) -> None:
     metadata : dict
         Dizionario dei metadati generato durante la pipeline di conversione.
         Deve contenere la chiave 'flat_data'.
-    mappings : dict
-        Dizionario di mappatura dei campi (chiave sorgente → percorso HDF5)
     out_path : Path
-        Destinazione del file JSON
+        Destinazione del file JSON.
     """
     flat = metadata.get("flat_data", {})
     flat_serializable = {
