@@ -755,6 +755,7 @@ def write_hdf5_nexus(out_path: Path, data: dict, metadata: dict) -> None:
         ai valori dei metadati
         può contenere anceh le chiavi ``excel_row`` e ``txt_meta`` a scopo di debug
     """
+    metadata["flat_data"] = flat_data
     flat_data = metadata["flat_data"].copy()
     
     # ── Auto-populate fields derived from the raw data ────────────────────────
@@ -792,7 +793,8 @@ def write_hdf5_nexus(out_path: Path, data: dict, metadata: dict) -> None:
             flat_data[st_path] = _dt.datetime.fromtimestamp(mtime).strftime("%Y-%m-%dT%H:%M:%S")
         except Exception:
             pass
-
+    metadata["flat_data"] = flat_data
+ 
     with h5py.File(out_path, "w") as f:
 
         # 1. Write the complete metadata hierarchy (PROJECT, SAMPLE, ENTRY)
