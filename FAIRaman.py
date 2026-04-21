@@ -1298,13 +1298,13 @@ def _load_metadata_sources(state: dict, frames: dict) -> tuple:
     Returns
     -------
     tuple
-        ``(txt_meta, excel_df, excel_metadata_map, filename_col, fallback_row)``
+        ``(txt_meta, excel_df, excel_metadata_map, filename_col, empty_row)``
 
         * ``txt_meta``          — dizionario dei metadati letti dal TXT
         * ``excel_df``          — DataFrame originale oppure None
         * ``excel_metadata_map``— mapping stem_normalizzato → dizionario riga Excel
         * ``filename_col``      — nome della prima colonna Excel (oppure None)
-        * ``fallback_row``      — prima riga del foglio Excel usata come fallback
+        * ``empty_row``      — prima riga del foglio Excel usata come fallback
     """
     txt_meta: dict = parse_txt_metadata(state["paths"]["txt"])
     print(f"[FAIRaman] TXT metadata loaded: {len(txt_meta)} fields")
@@ -1312,7 +1312,7 @@ def _load_metadata_sources(state: dict, frames: dict) -> tuple:
     excel_df: pd.DataFrame | None = None
     excel_metadata_map: dict      = {}
     filename_col: str | None      = None
-    fallback_row: dict            = {}
+    empty_row: dict            = {}
 
     if state["paths"].get("excel"):
         try:
@@ -1320,7 +1320,7 @@ def _load_metadata_sources(state: dict, frames: dict) -> tuple:
 
             if excel_df.empty:
                 print("[FAIRaman] WARNING: Excel file is empty.")
-                return txt_meta, excel_df, excel_metadata_map, filename_col, fallback_row
+                return txt_meta, excel_df, excel_metadata_map, filename_col, empty_row
 
             # Usa prima colonna non tira a indovinare
             filename_col = excel_df.columns[0]
