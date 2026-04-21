@@ -158,7 +158,6 @@ This structure enables:
 - direct compatibility with machine learning workflows
 - integration with clinical data systems
 
-```
 FAIRaman.h5
 │
 ├── PROJECT  (NXcollection)          ← study-level context
@@ -195,16 +194,23 @@ FAIRaman.h5
     ├── start_time / data_type
     ├── measurement  (NXcollection)
     │   ├── exposure_time / exposure_time_units
-    │   ├── spectral_count / accumulation_count
+    │   ├── accumulation_count
     │   └── substrate
-    └── instrument  (NXinstrument)
-        ├── name
-        ├── laser  (NXsource)
-        │   ├── wavelength / wavelength_units
-        │   └── filter
-        └── optical_system  (NXoptics)
-            └── lens
-```
+    ├── instrument  (NXinstrument)
+    │   ├── name
+    │   ├── laser  (NXsource)
+    │   │   ├── wavelength / wavelength_units
+    │   │   └── filter
+    │   └── optical_system  (NXoptics)
+    │       └── lens
+    ├── data  (NXdata)               ← spectral cube + structural descriptors
+    │   ├── intensity                ← 3D cube (ny, nx, n_wavenumbers)
+    │   ├── raman_shift              ← wavenumber axis
+    │   ├── x / y                    ← spatial axes (µm)
+    │   └── @spectral_count / @nx / @ny / @n_wavenumbers   ← attrs
+    └── auxiliary  (NXcollection)    ← WDF mode only
+        ├── white_light  (NXdata)
+        └── acquisition_map  (NXdata)
 
 
 ---
@@ -225,6 +231,9 @@ Optional:
 - renishawWiRE (for `.wdf` file reading)
 
 ---
+
+## Notes:
+The acquisition map overlay is intended for qualitative spatial context and may not represent exact spatial alignment due to undocumented transformations in the WDF format.
 
 ## Contributing
 
