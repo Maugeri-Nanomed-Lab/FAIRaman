@@ -22,8 +22,8 @@ Fields included in the FAIRaman scheme. All fields are written even if remain em
 ### `SAMPLE` — campione biologico
 
 | Field       | Description            | Example   | Source |
-| ----------- | ---------------------- | --------- | ------ |
-| `sample_id` | ID univoco del campione | AD123-HDL | MIABIS |
+| ----------- | -------------------------------- | --------- | ------ |
+| `sample_id` | unique ID of the sample analyzed | SB00x OCT | MIABIS |
 
 #### `SAMPLE/SAMPLE_INFO`
 
