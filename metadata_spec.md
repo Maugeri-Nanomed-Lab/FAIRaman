@@ -55,9 +55,9 @@ Fields included in the FAIRaman scheme. All fields are written even if remain em
 #### `SAMPLE/SAMPLE_EVENT`
 
 | Field               | Description                                             | Example    | Source |
-| ------------------- | ------------------------------------------------------- | ---------- | ------ |
-| `date`              | Data dell'evento                                        | yyyy-mm-dd |        |
-| `event_description` | Descrizione della preparazione prima della misura       |            |        |
+| ------------------- | ---------------------------------------------------------------------------- | ----------------- | ------ |
+| `date`              | Date of the event                                                            | yyyy-mm-dd        |        |
+| `event_description` | Description of the processing that the sample undergo before analysis        | sectioned 10 um   |        |
 
 ---
 
