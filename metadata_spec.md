@@ -56,8 +56,8 @@ Fields included in the FAIRaman scheme. All fields are written even if remain em
 
 | Field               | Description                                             | Example    | Source |
 | ------------------- | ---------------------------------------------------------------------------- | ----------------- | ------ |
-| `date`              | Date of the event                                                            | yyyy-mm-dd        |        |
-| `event_description` | Description of the processing that the sample undergo before analysis        | sectioned 10 um   |        |
+| `date`              | Date of the event                                                            | yyyy-mm-dd        | MIABIS |
+| `event_description` | Description of the processing that the sample undergo before analysis        | sectioned 10 um   | MIABIS |
 
 ---
 
