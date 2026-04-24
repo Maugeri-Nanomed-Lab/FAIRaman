@@ -11,7 +11,7 @@
 #  For per-spectrum metadata (sample_id, donor_id, diagnosis, etc.) use the
 #  companion Excel file:  FAIRaman_metadata_template.xlsx  (sheet: DATA)
 #
-#  SYNTAX RULES
+#  USE RULES
 #  ------------
 #  • Lines starting with '#' are comments – ignored by FAIRaman.py
 #  • Each field follows the pattern:   field_name = value
@@ -19,10 +19,6 @@
 #  • Leave the value EMPTY (field_name = ) if the information is not available
 #  • Dates must follow ISO 8601:  YYYY-MM-DD  or  YYYY-MM-DDTHH:MM:SS
 #  • Do NOT delete field lines – the parser expects the full schema
-#
-#  MANDATORY fields are marked with  [M]
-#  RECOMMENDED fields are marked with [R]
-#  OPTIONAL fields are marked with   [O]
 #
 ################################################################################
 
