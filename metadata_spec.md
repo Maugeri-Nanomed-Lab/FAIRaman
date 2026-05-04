@@ -1,6 +1,6 @@
 ## FAIRaman metadata schema
 
-Fields included in the FAIRaman scheme. All fields are written even if remain empty for compatibility with possible federated learning architecture
+Fields included in the FAIRaman scheme. All fields are written even if empty for compatibility with possible federated learning architecture
 
 ---
 
