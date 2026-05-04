@@ -17,7 +17,8 @@ Fields included in the FAIRaman scheme. All fields are written even if remain em
 | `accessibility` | Accessibility          | upon reasonable request                          |        |
 | `keywords`      | keywords               | Breast Cancer; Tissue Analysis; Surgical Margins |        |
 
-The PROJECT section maps to the Investigation layer of the ISA model. It captures the high-level context in which the data were generated — project identity, funding source, authorship with persistent identifiers (ORCID), licensing terms, and discoverability keywords — and therefore directly supports the Findable, Accessible and Reusable dimensions of the FAIR principles (
+The PROJECT section corresponds to the Investigation layer of the ISA (Investigation–Study–Assay) organisational standard adopted across biomedical research workflows (e.g., MetaboLights, FAIRDOM, BioSamples). It captures the context in which the data were generated: project identity, funding source, authorship with persistent identifiers (ORCID), licensing terms, and discoverability keywords, therefore supporting the Findable, Accessible and Reusable dimensions of the FAIR principles
+
 ---
 
 ### `SAMPLE` — campione biologico
