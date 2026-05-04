@@ -33,8 +33,8 @@ The PROJECT section corresponds to the Investigation layer of the ISA (Investiga
 | ---------------------- | -------------------------------------------------------- | -------------------------------------------- | ------ |
 | `provenance`           | Clinical institution that provided the sample            | ICS Maugeri                                  |        |
 | `sample_type`          | Type of biological sample                                | Tissue                                       | MIABIS |
-| `detailed_sample_type` | Detailed type of biological sample analyzed according to |                                              |        |
-|                        | MIABIS-SAMPLE-02                                         | Tissue (fresh frozen)                        | MIABIS |
+| `detailed_sample_type` | Detailed type of biological sample analyzed according to MIABIS-SAMPLE-02 |                                              |        |
+
 | `sample_source`        | Fonte da cui è stato raccolto il campione                | human / animal / environmental               | MIABIS |
 | `anatomical_site`      | Sito anatomico del campione                              | blood                                        | MIABIS |
 | `anatomical_site_code` | Codice del sito anatomico                                | 0000178                                      | MIABIS |
