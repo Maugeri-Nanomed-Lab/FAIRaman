@@ -32,13 +32,14 @@ The PROJECT section corresponds to the Investigation layer of the ISA (Investiga
 | Field                  | Description                                              | Example                                      | Source |
 | ---------------------- | -------------------------------------------------------- | -------------------------------------------- | ------ |
 | `provenance`           | Clinical institution that provided the sample            | ICS Maugeri                                  |        |
-| `sample_type`          | Type of biological sample                                | plasma                                       | MIABIS |
-| `detailed_sample_type` | Tipo di campione biologico per testing diagnostici       | plasma                                       | MIABIS |
+| `sample_type`          | Type of biological sample                                | Tissue                                       | MIABIS |
+| `detailed_sample_type` | Detailed type of biological sample analyzed according to |                                              |        |
+|                        | MIABIS-SAMPLE-02                                         | Tissue (fresh frozen)                        | MIABIS |
 | `sample_source`        | Fonte da cui è stato raccolto il campione                | human / animal / environmental               | MIABIS |
 | `anatomical_site`      | Sito anatomico del campione                              | blood                                        | MIABIS |
 | `anatomical_site_code` | Codice del sito anatomico                                | 0000178                                      | MIABIS |
 | `anatomical_ontology`  | Ontologia usata per il sito anatomico                    | UBERON                                       | MIABIS |
-| `storage_temperature`  | Temperatura di conservazione a lungo termine (°C)        | -80                                          | MIABIS |
+| `storage_temperature`  | Temperatura di conservazione a lungo termine (°C)        | -80 °C                                       | MIABIS |
 | `processing_method`    | Protocollo di preparazione del campione                  | plasma preparation by double centrifugation  |        |
 | `sample_creation_date` | Data di raccolta del campione                            | yyyy-mm-dd                                   |        |
 | `notes`                | Note libere                                              |                                              |        |
