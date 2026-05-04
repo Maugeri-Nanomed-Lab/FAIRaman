@@ -61,6 +61,9 @@ The PROJECT section corresponds to the Investigation layer of the ISA (Investiga
 | `date`              | Date of the event                                                            | yyyy-mm-dd        | MIABIS |
 | `event_description` | Description of the processing that the sample undergo before analysis        | sectioned 10 um   | MIABIS |
 
+
+The SAMPLE section corresponds to the Study layer of the ISA model and aligns with the MIABIS (Minimum Information About BIobank data Sharing) terminology maintained by BBMRI-ERIC, the de-facto standard for describing biological samples and their donors in biobanking and biomedical research workflows. It captures the biological material under investigation across three complementary perspectives: the sample itself (SAMPLE_INFO, aligned with the MIABIS Sample component v1.1 and SPREC v4), the donor from whom it originated (SAMPLE_DONOR, aligned with the MIABIS Sample Donor component v1.1), and the events the sample undergoes prior to analysis (SAMPLE_EVENT, aligned with the MIABIS Event component). Encoding provenance, anatomical source, storage conditions, donor demographics and diagnosis through controlled vocabularies and recognised ontologies (UBERON, ICD-10, ORPHA) supports the Interoperable and Reusable dimensions of the FAIR principles, while persistent sample and donor identifiers ensure Findability and unambiguous linkage to the corresponding spectroscopic measurements at the Assay level.
+
 ---
 
 ### `ENTRY` — singola acquisizione
