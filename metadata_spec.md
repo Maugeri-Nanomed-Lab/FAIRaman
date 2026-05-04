@@ -93,26 +93,25 @@ The SAMPLE section corresponds to the Study layer of the ISA model and aligns wi
 
 #### `ENTRY/instrument/laser`
 
-| Field              | Description                                              | Example | Source |
-| ------------------ | -------------------------------------------------------- | ------- | ------ |
-| `wavelength`       | Lunghezza d'onda del laser                               | 632.8   | NeXus  |
-| `wavelength_units` | Unità della lunghezza d'onda                             | nm      | NeXus  |
-| `filter`           | Percentuale di luce laser che arriva sul campione        | 100%    | NeXus  |
+| Field              | Description                                                                                       | Example | Source |
+| ------------------ | ------------------------------------------------------------------------------------------------- | ------- | ------ |
+| `wavelength`       | Excitation wavelength of the laser source                                                         | 632.8   | NeXus  |
+| `wavelength_units` | Unit in which `wavelength` is expressed                                                           | nm      | NeXus  |
+| `filter`           | Fraction of the nominal laser power transmitted to the sample by neutral density filtering        | 100%    | NeXus  |
 
 #### `ENTRY/instrument/optical_system`
 
-| Field  | Description              | Example | Source |
-| ------ | ------------------------ | ------- | ------ |
-| `lens` | Obiettivo del microscopio | 100x    | NeXus  |
+| Field  | Description                            | Example | Source |
+| ------ | -------------------------------------- | ------- | ------ |
+| `lens` | Lens (objective) used to collect light | 100x    | NeXus  |
 
 #### `ENTRY/data`
 
-Descrittori strutturali del cubo spettrale. Sono calcolati automaticamente
-dalla shape del cubo; l'utente non deve fornirli.
+Structural descriptors of the spectral hypercube. These fields are derived automatically from the dataset shape and do not require manual entry.
 
 | Field            | Description                                             | Example | Source |
 | ---------------- | ------------------------------------------------------- | ------- | ------ |
-| `spectral_count` | Numero totale di spettri acquisiti (ny × nx)            | 1024    | auto   |
-| `nx`             | Numero di punti spaziali lungo l'asse x                 | 32      | auto   |
-| `ny`             | Numero di punti spaziali lungo l'asse y                 | 32      | auto   |
-| `n_wavenumbers`  | Numero di punti lungo l'asse spettrale                  | 1015    | auto   |
+| `spectral_count` | Structural descriptors of the spectral hypercube. These fields are derived automatically from the dataset shape and do not require manual entry. (ny × nx)            | 1024    | auto   |
+| `nx`             | Number of spatial sampling points along the "x" axis                 | 32      | auto   |
+| `ny`             | Number of spatial sampling points along the "y" axis                 | 32      | auto   |
+| `n_wavenumbers`  | Number of points along the spectral (wavenumber) axis                  | 1015    | auto   |
