@@ -31,8 +31,8 @@ The PROJECT section corresponds to the Investigation layer of the ISA (Investiga
 
 | Field                  | Description                                              | Example                                      | Source |
 | ---------------------- | -------------------------------------------------------- | -------------------------------------------- | ------ |
-| `provenance`           | Fonte clinica del campione                               | ICS Maugeri                                  |        |
-| `sample_type`          | Tipo di campione biologico                               | plasma                                       | MIABIS |
+| `provenance`           | Clinical institution that provided the sample            | ICS Maugeri                                  |        |
+| `sample_type`          | Type of biological sample                                | plasma                                       | MIABIS |
 | `detailed_sample_type` | Tipo di campione biologico per testing diagnostici       | plasma                                       | MIABIS |
 | `sample_source`        | Fonte da cui è stato raccolto il campione                | human / animal / environmental               | MIABIS |
 | `anatomical_site`      | Sito anatomico del campione                              | blood                                        | MIABIS |
@@ -47,9 +47,9 @@ The PROJECT section corresponds to the Investigation layer of the ISA (Investiga
 
 | Field                | Description                                            | Example | Source |
 | -------------------- | ------------------------------------------------------ | ------- | ------ |
-| `donor_id`           | ID del donatore                                        | AD123   | MIABIS |
-| `sex`                | Sesso biologico del donatore                           | F       | MIABIS |
-| `age`                | Età biologica del donatore                             | 77      |        |
+| `donor_id`           | ID of the donor                                        | AD123   | MIABIS |
+| `sex`                | Sex of the donor                                       | F       | MIABIS |
+| `age`                | Age of the donor                                       | 77      |        |
 | `diagnosis_code`     | Codice diagnosi                                        | G30     | MIABIS |
 | `diagnosis_ontology` | Ontologia usata per la diagnosi                        | ICD-10  | MIABIS |
 | `diagnosis_notes`    | Note libere sulla diagnosi                             |         |        |
