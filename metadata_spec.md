@@ -21,7 +21,7 @@ The PROJECT section corresponds to the Investigation layer of the ISA (Investiga
 
 ---
 
-### `SAMPLE` — campione biologico
+### `SAMPLE` — Biological sample analyzed
 
 | Field       | Description            | Example   | Source |
 | ----------- | -------------------------------- | --------- | ------ |
@@ -66,7 +66,7 @@ The SAMPLE section corresponds to the Study layer of the ISA model and aligns wi
 
 ---
 
-### `ENTRY` — singola acquisizione
+### `ENTRY` — Aquistion parameters
 
 | Field             | Description                             | Example                            | Source |
 | ----------------- | --------------------------------------- | ---------------------------------- | ------ |
@@ -115,3 +115,6 @@ Structural descriptors of the spectral hypercube. These fields are derived autom
 | `nx`             | Number of spatial sampling points along the "x" axis                 | 32      | auto   |
 | `ny`             | Number of spatial sampling points along the "y" axis                 | 32      | auto   |
 | `n_wavenumbers`  | Number of points along the spectral (wavenumber) axis                  | 1015    | auto   |
+
+The ENTRY section corresponds to the Assay layer of the ISA model and aligns with the NXraman application definition of the NeXus standard, the reference schema for storing Raman spectroscopy data in a domain-specific, machine-actionable form. It captures the full experimental fingerprint of a single acquisition — instrument identity, laser excitation, optical configuration, integration and accumulation parameters, substrate, and the structural shape of the resulting spectral hypercube — so that any recorded spectrum can be unambiguously interpreted, reproduced, and compared across instruments and laboratories. Adopting NeXus naming conventions and units, complemented by automatically derived structural descriptors, supports the Interoperable and Reusable dimensions of the FAIR principles, while explicit linkage to the upstream PROJECT (Investigation) and SAMPLE (Study) sections preserves the full provenance chain from research context through biological material to instrumental measurement.
+
