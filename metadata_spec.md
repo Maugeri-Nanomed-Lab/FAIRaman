@@ -45,15 +45,14 @@ The PROJECT section corresponds to the Investigation layer of the ISA (Investiga
 
 #### `SAMPLE/SAMPLE_DONOR`
 
-| Field                | Description                                                                                                  | Example   | Source                  |
-| -------------------- | ------------------------------------------------------------------------------------------------------------ | --------- | ----------------------- |
-| `donor_id`           | Pseudonymised, persistent identifier of the sample donor (`MIABIS-DONOR-01 — Sample donor ID`)               | AD123     | MIABIS-DONOR-01         |
-| `sex`                | Sex of the donor, encoded according to the controlled vocabulary of `MIABIS-DONOR-02` (Male, Female, Unknown, Undifferentiated, Not applicable) | F | MIABIS-DONOR-02 |
-| `birth_date`         | Donor birth date in ISO 8601 format; partial values (e.g. `1948`, `1948-03`) are allowed (`MIABIS-DONOR-03`) | 1948      | MIABIS-DONOR-03         |
-| `age_at_sampling`    | Donor age at the time of sample collection, expressed in years; derived from `birth_date` and `sample_creation_date` | 77 |                         |
-| `diagnosis_code`     | Diagnosis code associated with the donor, encoded according to a recognised classification (e.g. ICD-10, ORPHA) | G30    | MIABIS (Event / SAMPLE-10) |
-| `diagnosis_ontology` | Classification system used to encode the diagnosis                                                           | ICD-10    | MIABIS (Event / SAMPLE-10) |
-| `diagnosis_notes`    | Free-text field for additional clinical context not captured by the structured diagnosis code                |           |                         |
+| Field                | Description                                                                                                                                | Example   | Source           |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | --------- | ---------------- |
+| `donor_id`           | Pseudonymised, persistent identifier of the sample donor (`MIABIS-DONOR-01 — Sample donor ID`)                                             | AD123     | MIABIS-DONOR-01  |
+| `sex`                | Sex of the donor, encoded according to the controlled vocabulary of `MIABIS-DONOR-02` (Male, Female, Unknown, Undifferentiated, Not applicable) | F      | MIABIS-DONOR-02  |
+| `age`                | Age of the donor at the time of sample collection, expressed in years                                                                      | 77        |                  |
+| `diagnosis_code`     | Diagnosis code associated with the donor, encoded according to a recognised classification (e.g. ICD-10, ORPHA)                            | G30       | MIABIS           |
+| `diagnosis_ontology` | Classification system used to encode the diagnosis                                                                                         | ICD-10    | MIABIS           |
+| `diagnosis_notes`    | Free-text field for additional clinical context not captured by the structured diagnosis code                                              |           |                  |
 
 #### `SAMPLE/SAMPLE_EVENT`
 
