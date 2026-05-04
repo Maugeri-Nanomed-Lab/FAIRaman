@@ -29,19 +29,19 @@ The PROJECT section corresponds to the Investigation layer of the ISA (Investiga
 
 #### `SAMPLE/SAMPLE_INFO`
 
-| Field                  | Description                                              | Example                                      | Source |
-| ---------------------- | -------------------------------------------------------- | -------------------------------------------- | ------ |
-| `provenance`           | Clinical institution that provided the sample            | ICS Maugeri                                  |        |
-| `sample_type`          | Type of biological sample                                | Tissue                                       | MIABIS |
-| `detailed_sample_type` | Detailed type of biological sample analyzed according to MIABIS-SAMPLE-02 |                             | MIABIS |
-| `sample_source`        | Fonte da cui è stato raccolto il campione                | human / animal / environmental               | MIABIS |
-| `anatomical_site`      | Sito anatomico del campione                              | blood                                        | MIABIS |
-| `anatomical_site_code` | Codice del sito anatomico                                | 0000178                                      | MIABIS |
-| `anatomical_ontology`  | Ontologia usata per il sito anatomico                    | UBERON                                       | MIABIS |
-| `storage_temperature`  | Temperatura di conservazione a lungo termine (°C)        | -80 °C                                       | MIABIS |
-| `processing_method`    | Protocollo di preparazione del campione                  | plasma preparation by double centrifugation  |        |
-| `sample_creation_date` | Data di raccolta del campione                            | yyyy-mm-dd                                   |        |
-| `notes`                | Note libere                                              |                                              |        |
+| Field                  | Description                                                                                              | Example                                      | Source            |
+| ---------------------- | -------------------------------------------------------------------------------------------------------- | -------------------------------------------- | ----------------- |
+| `provenance`           | Clinical institution that collected and provided the sample                                              | ICS Maugeri                                  |                   |
+| `sample_type`          | High-level biological sample category, aligned with the aggregated `Sample type` attribute of MIABIS Core 3.0 | Tissue                                  | MIABIS Core 3.0   |
+| `detailed_sample_type` | Granular sample category, encoded according to the controlled vocabulary of `MIABIS-SAMPLE-02` (Sample type) | Plasma                                   | MIABIS-SAMPLE-02  |
+| `sample_source`        | Biological source from which the sample was collected, encoded according to `MIABIS-SAMPLE-12`           | Human / Animal / Environment                 | MIABIS-SAMPLE-12  |
+| `anatomical_site`      | Anatomical source of the sample material (`MIABIS-SAMPLE-05`)                                            | Blood                                        | MIABIS-SAMPLE-05  |
+| `anatomical_ontology`  | Reference ontology used to encode the anatomical site (`MIABIS-SAMPLE-05-01`)                            | UBERON                                       | MIABIS-SAMPLE-05-01 |
+| `anatomical_site_code` | Anatomical site identifier from the selected ontology version (`MIABIS-SAMPLE-05-03`)                    | 0000178                                      | MIABIS-SAMPLE-05-03 |
+| `storage_temperature`  | Long-term storage temperature, encoded as one of the SPREC v4-based ranges defined in `MIABIS-SAMPLE-03` | -60 °C to -85 °C                             | MIABIS-SAMPLE-03  |
+| `processing_method`    | Pre-analytical protocol applied to obtain the sample from the primary specimen                           | Plasma preparation by double centrifugation  |                   |
+| `sample_creation_date` | Date of sample collection in ISO 8601 format (`MIABIS-SAMPLE-04`)                                        | yyyy-mm-dd                                   | MIABIS-SAMPLE-04  |
+| `notes`                | Free-text field for additional information not covered by the structured metadata                        |                                              |                   |
 
 #### `SAMPLE/SAMPLE_DONOR`
 
