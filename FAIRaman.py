@@ -172,7 +172,7 @@ NEXUS_SCHEMA = {
                 "subgroups": {
                     "laser": {
                         "NX_class": "NXsource",
-                        "fields": ["wavelength", "wavelength_units", "filter"]
+                        "fields": ["wavelength", "wavelength_units", "power", "power_units",  "filter"]
                     },
                     "optical_system": {
                         "NX_class": "NXoptics",
