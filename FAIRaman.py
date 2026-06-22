@@ -69,6 +69,11 @@ data management and stewardship. Sci. Data 3, 160018
 Schober, P. & Vetter, T.R. (2019) MIABIS: Minimum Information About
 BIobank data Sharing. Biopreservation and Biobanking
 """
+# ── FAIRaman Version ──────────────────────────────────────────────────────────
+# Update this number at every significant modify of the code
+# It is automatically putted in HDF5 files under the voice Verison FAIRaman
+
+  FAIRAMAN_VERSION = "1.1"
 
 # ── Standard library ──────────────────────────────────────────────────────────
 import ctypes
@@ -865,8 +870,8 @@ def write_hdf5_nexus(out_path: Path, data: dict, metadata: dict) -> None:
 
         # Root-level provenance attributes
         f.attrs["source_format"]    = data.get("source_format", "unknown")
-        f.attrs["fairaman_version"] = "1.0"
-
+        f.attrs["fairaman_version"] = FAIRAMAN_VERSION
+        f.create_dataset("version FAIRaman", data=FAIRAMAN_VERSION)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # EXPORT: CSV AND JSON SIDECAR
