@@ -125,7 +125,7 @@ NEXUS_SCHEMA = {
     "PROJECT": {
         "NX_class": "NXcollection",
         "fields": [
-            "project_name", "project_id", "funding", "author", "author_id",
+            "project_name", "project_id", "funding", "governance_reference", "author", "author_id",
             "data_license", "accessibility", "keywords"
         ]
     },
@@ -135,21 +135,21 @@ NEXUS_SCHEMA = {
         "subgroups": {
             "SAMPLE_INFO": {
                 "fields": [
-                    "provenance", "sample_type", "detailed_sample_type", "sample_source",
+                    "sample_provenance", "sample_type", "detailed_sample_type", "sample_source",
                     "anatomical_site", "anatomical_site_code", "anatomical_ontology",
                     "storage_temperature", "processing_method",
-                    "sample_creation_date", "notes"
+                    "sample_creation_date", "sample_notes"
                 ]
             },
             "SAMPLE_DONOR": {
                 "fields": [
-                    "donor_id", "sex", "age", "diagnosis_code",
+                    "donor_id", "donor_sex", "donor_age", "diagnosis_code",
                     "diagnosis_ontology", "diagnosis_notes"
                 ]
             },
             "SAMPLE_EVENT": {
                 "fields": [
-                    "date", "event_description"
+                    "event_date", "event_description"
                 ]
             }
         }
