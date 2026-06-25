@@ -73,7 +73,7 @@ BIobank data Sharing. Biopreservation and Biobanking
 # Update this number at every significant modify of the code
 # It is automatically putted in HDF5 files under the voice Verison FAIRaman
 
-FAIRAMAN_VERSION = "1.2"
+FAIRAMAN_VERSION = "1.3"
 
 # ── Standard library ──────────────────────────────────────────────────────────
 import ctypes
