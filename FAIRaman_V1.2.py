@@ -212,6 +212,89 @@ def flatten_schema(schema: dict, prefix: str = "") -> list[str]:
 HDF5_FIELDS = ["Do not map"] + flatten_schema(NEXUS_SCHEMA)
 
 # ─────────────────────────────────────────────────────────────────────────────
+# FAIRAMAN CANONICAL DATA MODEL
+# ─────────────────────────────────────────────────────────────────────────────
+# Contratto unico tra QUALSIASI importer (oggi WDF/ASCII; domani RamanSPy per
+# Horiba/WiTec/MATLAB) e il writer HDF5/NeXus. Il writer non deve sapere da dove
+# vengono i dati: legge solo i campi qui sotto.
+#
+# Due geometrie spaziali, distinte da `coordinate_mode`:
+#   "regular_grid"       cube:    (ny, nx, nw)   x_axis: (nx,)  y_axis: (ny,)
+#                        assi indipendenti, combinabili con meshgrid.
+#   "point_coordinates"  spectra: (n_points, nw) x: (n_pts,)    y: (n_pts,)
+#                        una coordinata reale per spettro; NON usare meshgrid.
+#
+# Regola di onestà FAIR:
+#   coordinate fisiche  → corrette e coerenti con gli spettri (validate);
+#   coordinate assenti  → dichiarate come 'synthetic' / 'index'.
+#
+# CAMPI (None se assente):
+#   cube / spectra        np.ndarray   (vedi coordinate_mode)
+#   raman_shift           np.ndarray   (nw,)
+#   x_axis,y_axis / x,y   np.ndarray   coordinate
+#   coordinate_mode       str          "regular_grid" | "point_coordinates"
+#   coordinate_source     str          "Renishaw ORGN/map_shape" | "synthetic"...
+#   coordinate_units      str          "micrometers" | "index"
+#   coordinate_validated  bool         True se coordinate coerenti con spettri
+#   reshape_applied       bool         True se il cubo è stato rimodellato
+#   reshape_source        str          "map_shape" | "none" | ...
+#   geometry_warning      str          "" se nessun problema
+#   source_format         str          "wdf" | "txt" | "ramanspy" | ...
+#   white_light           np.ndarray   immagine RGB opzionale
+#   acquisition_map       np.ndarray   overlay RGB opzionale
+# ─────────────────────────────────────────────────────────────────────────────
+
+COORDINATE_MODE_REGULAR = "regular_grid"
+COORDINATE_MODE_POINTS  = "point_coordinates"
+
+
+def _canonical_defaults() -> dict:
+    """Campi di provenance coordinate al loro default 'sintetico/non validato'.
+    Ogni importer parte da qui e sovrascrive solo ciò che può garantire."""
+    return {
+        "coordinate_mode":      COORDINATE_MODE_POINTS,
+        "coordinate_source":    "synthetic",
+        "coordinate_units":     "index",
+        "coordinate_validated": False,
+        "reshape_applied":      False,
+        "reshape_source":       "none",
+        "geometry_warning":     "",
+    }
+
+
+def validate_canonical(data: dict) -> None:
+    """Verifica minima di coerenza geometrica prima della scrittura su disco.
+    Solleva ValueError se spettri e coordinate non descrivono la stessa geometria."""
+    mode = data.get("coordinate_mode", COORDINATE_MODE_POINTS)
+    rs   = np.atleast_1d(np.asarray(data["raman_shift"]))
+
+    if mode == COORDINATE_MODE_REGULAR:
+        cube = np.asarray(data["cube"])
+        if cube.ndim != 3:
+            raise ValueError(f"regular_grid richiede un cubo 3D, shape {cube.shape}")
+        ny, nx, nw = cube.shape
+        if len(np.atleast_1d(data["x_axis"])) != nx:
+            raise ValueError(f"len(x_axis) != nx ({len(data['x_axis'])} != {nx})")
+        if len(np.atleast_1d(data["y_axis"])) != ny:
+            raise ValueError(f"len(y_axis) != ny ({len(data['y_axis'])} != {ny})")
+        if len(rs) != nw:
+            raise ValueError(f"len(raman_shift) != nw ({len(rs)} != {nw})")
+
+    elif mode == COORDINATE_MODE_POINTS:
+        spec = np.asarray(data["spectra"])
+        if spec.ndim != 2:
+            raise ValueError(f"point_coordinates richiede spectra 2D, shape {spec.shape}")
+        n_pts, nw = spec.shape
+        if len(np.atleast_1d(data["x"])) != n_pts:
+            raise ValueError(f"len(x) != n_points ({len(data['x'])} != {n_pts})")
+        if len(np.atleast_1d(data["y"])) != n_pts:
+            raise ValueError(f"len(y) != n_points ({len(data['y'])} != {n_pts})")
+        if len(rs) != nw:
+            raise ValueError(f"len(raman_shift) != nw ({len(rs)} != {nw})")
+    else:
+        raise ValueError(f"coordinate_mode sconosciuto: {mode!r}")
+
+# ─────────────────────────────────────────────────────────────────────────────
 # UTILITY CLASSES AND FUNCTIONS
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -273,7 +356,7 @@ def parse_txt_metadata(path: Path) -> dict:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# WDF PROCESSING (requires renishawWiRE)
+# RENISHAW WDF IMPORTER (requires renishawWiRE)
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _extract_white_light_image(reader) -> tuple:
@@ -385,86 +468,69 @@ def _create_acquisition_map(img_arr: np.ndarray, wl_meta: dict,
         print(f"[FAIRaman] WARNING: Could not create acquisition map: {exc}")
         return None
 
-
-def _read_wmap_direct(wdf_path: Path) -> dict:
+def _read_renishaw_geometry(reader) -> dict:
     """
-    Legge il blocco WMAP direttamente dal file binario WDF,
-    bypassando renishawWiRE map_info che usa chiavi inconsistenti.
+    Estrae la geometria spaziale da un WDFReader, distinguendo griglia regolare
+    da punti sparsi.
 
-    Struttura WMAP (offset dal dato, dopo i 16 byte di header blocco):
-      0:  flags    uint32
-      4:  reserved uint32
-      8:  x_start  float32  (µm)
-      12: y_start  float32  (µm)
-      16: x_pad    float32
-      20: x_step   float32  (µm)
-      24: y_step   float32  (µm)
-      28: z_step   float32
-      32: num_x    uint32
-      36: num_y    uint32
-      40: num_z    uint32
+    WiRE popola xpos/ypos (blocchi ORGN) per OGNI spettro, anche sulle mappe
+    regolari (srotolate row-major): la loro presenza NON distingue i due casi.
+    Il discriminante è `map_shape`: se esiste e il suo prodotto combacia col
+    numero di spettri, è una griglia rettangolare.
+
+    NB: map_shape WiRE = (nx, ny), mentre spectra = (ny, nx, nw). Ordine invertito.
+
+    Returns
+    -------
+    dict con:
+      'kind'              : "grid" | "points" | "none"
+      'nx','ny'           : per "grid"
+      'x_axis','y_axis'   : per "grid" (µm, dagli ORGN se disponibili)
+      'x','y'             : per "points" (µm, per-spettro)
     """
-    import struct as _struct
     try:
-        with open(wdf_path, "rb") as fh:
-            raw = fh.read()
-        pos = 0
-        while pos + 16 <= len(raw):
-            tag  = raw[pos:pos+4]
-            size = _struct.unpack_from('<Q', raw, pos+8)[0]
-            if tag == b'WMAP' and size >= 48:
-                d = raw[pos+16:pos+16+48]
-                x_start = _struct.unpack_from('<f', d, 8)[0]
-                y_start = _struct.unpack_from('<f', d, 12)[0]
-                x_step  = _struct.unpack_from('<f', d, 20)[0]
-                y_step  = _struct.unpack_from('<f', d, 24)[0]
-                num_x   = _struct.unpack_from('<I', d, 32)[0]
-                num_y   = _struct.unpack_from('<I', d, 36)[0]
-                print(f"[FAIRaman] WMAP direct: x_start={x_start:.3f} y_start={y_start:.3f} "
-                      f"x_step={x_step:.3f} y_step={y_step:.3f} num_x={num_x} num_y={num_y}")
-                return {
-                    "x_start": float(x_start),
-                    "y_start": float(y_start),
-                    "x_step":  float(x_step),
-                    "y_step":  float(y_step),
-                    "num_x":   int(num_x),
-                    "num_y":   int(num_y),
-                }
-            if size == 0 or size > len(raw):
-                break
-            pos += size
+        xpos = getattr(reader, "xpos", None)
+        ypos = getattr(reader, "ypos", None)
+        x = None if xpos is None else np.asarray(xpos, dtype=float).ravel()
+        y = None if ypos is None else np.asarray(ypos, dtype=float).ravel()
+        n_spec = int(getattr(reader, "count", 0)) or (0 if x is None else x.size)
+
+        ms = getattr(reader, "map_shape", None)
+        if ms is not None and len(ms) == 2:
+            nx_m, ny_m = int(ms[0]), int(ms[1])
+            if nx_m * ny_m == n_spec and nx_m > 1 and ny_m > 1:
+                if x is not None and y is not None and x.size == n_spec:
+                    x_axis = x[:nx_m]      # prima riga (x veloce)
+                    y_axis = y[::nx_m]     # primo elemento di ogni riga (y lento)
+                else:
+                    x_axis = y_axis = None
+                return {"kind": "grid", "nx": nx_m, "ny": ny_m,
+                        "x_axis": x_axis, "y_axis": y_axis}
+
+        # Nessuna griglia coerente: coordinate per-punto reali e non degeneri → punti
+        if x is not None and y is not None and x.size == y.size == n_spec \
+                and not (np.allclose(x, x[0]) and np.allclose(y, y[0])):
+            return {"kind": "points", "x": x, "y": y}
+
+        return {"kind": "none"}
     except Exception as exc:
-        print(f"[FAIRaman] WARNING _read_wmap_direct: {exc}")
-    return {}
+        print(f"[FAIRaman] WARNING _read_renishaw_geometry: {exc}")
+        return {"kind": "none"}
 
 
 def process_wdf(wdf_path: Path) -> dict:
     """
-    Lege un file WDF di Renishaw e restituisce un dizionario con dati spettrali
+    Importer Renishaw/WDF → dizionario canonico FAIRaman.
 
-    L'array spettrale viene rimodellato in un cubo tridimensionale di intensità
-    con assi (Y, X, numero d'onda), coerente con la convenziona NXraman sia per acquisizioni
-    singole sia per mappe bidimensionali
-    Gli assi spaziali sono espressi in micrometri reali, ricavati dal blocco map_info del file WDF
-    
-    Se presente, vengono estratti anche l'immagine a white-light e la sovrapposizione della griglia
+    Priorità geometrica (validata su file reali):
+      GRID    map_shape coerente col n. spettri → regular_grid, cubo 3D,
+              assi in µm dagli ORGN reali.
+      POINTS  coordinate ORGN per-punto, geometria non a griglia → point_coordinates
+              (es. microplastiche, ROI morfologiche, spot manuali).
+      NONE    nessuna coordinata reale → synthetic / index.
 
-    Parametri
-    ----------
-    wdf_path : Path
-        Percorso del file WDF di input
-
-    Returns
-    -------
-    dict
-        Keys: cube, raman_shift, x_axis, y_axis, white_light,
-        white_light_meta, acquisition_map, instrument, filename,
-        source_format.
-
-    Eccezioni
-    ------
-    RuntimeError
-        se renishawWiRe non è installato
+    Nome concettuale futuro: import_renishaw_wdf. Mantenuto process_wdf per
+    retrocompatibilità con la pipeline di conversione.
     """
     if not HAS_WDF:
         raise RuntimeError(
@@ -475,59 +541,103 @@ def process_wdf(wdf_path: Path) -> dict:
     spectra     = np.asarray(reader.spectra)
     raman_shift = np.asarray(reader.xdata)
 
-    # Reshape a (ny, nx, n_wavenumbers) a priori del tipo di acquisizione
-    if spectra.ndim == 1:
-        cube = spectra.reshape(1, 1, -1)
-    elif spectra.ndim == 2:
-        cube = spectra.reshape(spectra.shape[0], 1, spectra.shape[1])
-    else:
-        cube = spectra
-
-    ny, nx, _ = cube.shape
-
-    # Legge coordinate direttamente dal blocco WMAP binario —
-    # più affidabile di map_info che usa chiavi inconsistenti tra versioni WiRE
-    wmap = _read_wmap_direct(wdf_path)
-    x0 = wmap.get("x_start", 0.0)
-    y0 = wmap.get("y_start", 0.0)
-    dx = wmap.get("x_step",  1.0)
-    dy = wmap.get("y_step",  1.0)
-
-    # num_x/num_y da WMAP sono la fonte di verità per gli assi
-    nx_wmap = wmap.get("num_x", nx)
-    ny_wmap = wmap.get("num_y", ny)
-    if wmap and (nx_wmap != nx or ny_wmap != ny):
-        print(f"[FAIRaman] WARNING: cube shape ({ny}×{nx}) ≠ WMAP ({ny_wmap}×{nx_wmap}), "
-              f"uso WMAP per gli assi")
-
-    x_axis = x0 + np.arange(nx_wmap) * dx if nx_wmap > 1 else np.array([float(x0)])
-    y_axis = y0 + np.arange(ny_wmap) * dy if ny_wmap > 1 else np.array([float(y0)])
-
-    wl_img, wl_meta = _extract_white_light_image(reader)
-    acq_map = (
-        _create_acquisition_map(wl_img, wl_meta, x_axis, y_axis)
-        if wl_img is not None else None
+    n_spectra = int(getattr(reader, "count", 0)) or (
+        1 if spectra.ndim == 1 else
+        spectra.shape[0] if spectra.ndim == 2 else
+        spectra.shape[0] * spectra.shape[1]
     )
 
-    instrument_meta = {
-        "laser_wavelength": float(getattr(reader, "laser_length", 0.0)),
-        "x_start": x0, "y_start": y0, "x_step": dx, "y_step": dy,
-    }
+    geom = _read_renishaw_geometry(reader)
 
-    return {
-        "cube":             cube,
+    out = _canonical_defaults()
+    out.update({
+        "cube":             None,
+        "spectra":          None,
         "raman_shift":      raman_shift,
-        "x_axis":           x_axis,
-        "y_axis":           y_axis,
-        "white_light":      wl_img,
-        "white_light_meta": wl_meta,
-        "acquisition_map":  acq_map,
-        "instrument":       instrument_meta,
+        "x_axis":           None,
+        "y_axis":           None,
+        "x":                None,
+        "y":                None,
+        "white_light":      None,
+        "white_light_meta": None,
+        "acquisition_map":  None,
         "filename":         wdf_path.name,
         "wdf_path":         wdf_path,
         "source_format":    "wdf",
-    }
+    })
 
+    # ── GRID: mappa rettangolare regolare (priorità) ─────────────────────────
+    if geom["kind"] == "grid":
+        ny, nx = geom["ny"], geom["nx"]
+        if spectra.ndim == 3 and spectra.shape[:2] == (ny, nx):
+            cube, reshaped = spectra, False
+        else:
+            cube, reshaped = spectra.reshape(ny, nx, spectra.shape[-1]), True
+        if geom["x_axis"] is not None:
+            x_axis, y_axis = geom["x_axis"], geom["y_axis"]
+            units, src, valid = "micrometers", "Renishaw ORGN/map_shape", True
+        else:
+            x_axis = np.arange(nx, dtype=float)
+            y_axis = np.arange(ny, dtype=float)
+            units, src, valid = "index", "synthetic", False
+        out.update({
+            "cube":                 cube,
+            "x_axis":               x_axis,
+            "y_axis":               y_axis,
+            "coordinate_mode":      COORDINATE_MODE_REGULAR,
+            "coordinate_source":    src,
+            "coordinate_units":     units,
+            "coordinate_validated": valid,
+            "reshape_applied":      reshaped,
+            "reshape_source":       "map_shape" if reshaped else "none",
+        })
+
+    # ── POINTS: coordinate per-punto reali, geometria non a griglia ──────────
+    elif geom["kind"] == "points":
+        out.update({
+            "spectra":              spectra.reshape(n_spectra, -1),
+            "x":                    geom["x"],
+            "y":                    geom["y"],
+            "coordinate_mode":      COORDINATE_MODE_POINTS,
+            "coordinate_source":    "Renishaw ORGN (per-point)",
+            "coordinate_units":     "micrometers",
+            "coordinate_validated": True,
+        })
+
+    # ── NONE: nessuna coordinata reale → synthetic / index ───────────────────
+    else:
+        if n_spectra == 1:
+            xs, ys = np.array([0.0]), np.array([0.0])
+        else:
+            xs, ys = np.arange(n_spectra, dtype=float), np.zeros(n_spectra)
+        out.update({
+            "spectra":              spectra.reshape(n_spectra, -1),
+            "x":                    xs,
+            "y":                    ys,
+            "coordinate_mode":      COORDINATE_MODE_POINTS,
+            "coordinate_source":    "synthetic",
+            "coordinate_units":     "index",
+            "coordinate_validated": False,
+        })
+
+    # ── White-light & acquisition map (solo geometria regolare) ──────────────
+    wl_img, wl_meta = _extract_white_light_image(reader)
+    out["white_light"]      = wl_img
+    out["white_light_meta"] = wl_meta
+    if wl_img is not None and out["coordinate_mode"] == COORDINATE_MODE_REGULAR:
+        out["acquisition_map"] = _create_acquisition_map(
+            wl_img, wl_meta, out["x_axis"], out["y_axis"]
+        )
+
+    out["instrument"] = {
+        "laser_wavelength": float(getattr(reader, "laser_length", 0.0)),
+        "x_start": float(out["x_axis"][0]) if out["x_axis"] is not None
+                   else (float(out["x"][0]) if out["x"] is not None else 0.0),
+        "y_start": float(out["y_axis"][0]) if out["y_axis"] is not None
+                   else (float(out["y"][0]) if out["y"] is not None else 0.0),
+        "x_step": 0.0, "y_step": 0.0,
+    }
+    return out
 
 # ─────────────────────────────────────────────────────────────────────────────
 # ASCII TWO-COLUMN PROCESSAMENTO SPETTRALE 
@@ -609,18 +719,50 @@ def process_txt_spectrum(txt_path: Path) -> dict:
         "x_step":  1.0, "y_step":  1.0,
     }
 
-    return {
-        "cube":             cube,
-        "raman_shift":      raman_shift,
-        "x_axis":           np.array([0.0]),
-        "y_axis":           np.array([0.0]),
-        "white_light":      None,
-        "white_light_meta": None,
-        "acquisition_map":  None,
-        "instrument":       instrument_meta,
-        "filename":         txt_path.name,
-        "source_format":    "txt",
-    }
+    out = _canonical_defaults()
+    out.update({
+        "cube":              cube,                    # (1,1,nw) — back-compat
+        "spectra":           intensity.reshape(1, -1),
+        "raman_shift":       raman_shift,
+        "x_axis":            np.array([0.0]),
+        "y_axis":            np.array([0.0]),
+        "x":                 np.array([0.0]),
+        "y":                 np.array([0.0]),
+        "coordinate_mode":   COORDINATE_MODE_POINTS,
+        "coordinate_source": "synthetic",
+        "coordinate_units":  "index",
+        "white_light":       None,
+        "white_light_meta":  None,
+        "acquisition_map":   None,
+        "instrument":        instrument_meta,
+        "filename":          txt_path.name,
+        "source_format":     "txt",
+    })
+    return out
+
+# ─────────────────────────────────────────────────────────────────────────────
+# FUTURE RAMANSPY ADAPTER (optional dependency)
+# ─────────────────────────────────────────────────────────────────────────────
+# RamanSPy NON sostituisce renishawWiRE per i WDF: la sua load.renishaw() è essa
+# stessa basata su renishawWiRE e, normalizzando a SpectralImage/Container,
+# SCARTA xpos/ypos, map_shape, white-light e laser. Per il WDF si usa quindi
+# l'importer diretto sopra. RamanSPy resta utile SOLO per formati che FAIRaman
+# non parsa nativamente (Horiba .spe, WiTec .wip, MATLAB .mat), dove fornisce
+# loader già pronti.
+#
+# Quando servirà, implementare:
+#   def import_via_ramanspy(path: Path) -> dict:
+#       import ramanspy as rp
+#       obj = rp.load.<loader>(str(path))
+#       # mappare obj.spectral_data / obj.spectral_axis sul dizionario canonico,
+#       # impostando coordinate_mode in base alla dimensionalità del container e
+#       # coordinate_source = "RamanSPy" / coordinate_validated = False se le
+#       # coordinate fisiche non sono recuperabili dal container.
+#       ...
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -776,10 +918,13 @@ def write_hdf5_nexus(out_path: Path, data: dict, metadata: dict) -> None:
     if not flat_data.get(wu_path):
         flat_data[wu_path] = "nm"
 
-    # Spectral count: total number of acquired spectra (ny × nx)
+    # Spectral count: numero totale di spettri (geometry-aware)
     sc_path = "ENTRY.data.spectral_count"
     if not flat_data.get(sc_path):
-        flat_data[sc_path] = int(data["cube"].shape[0] * data["cube"].shape[1])
+        if data.get("coordinate_mode") == COORDINATE_MODE_REGULAR and data.get("cube") is not None:
+            flat_data[sc_path] = int(data["cube"].shape[0] * data["cube"].shape[1])
+        elif data.get("spectra") is not None:
+            flat_data[sc_path] = int(np.asarray(data["spectra"]).shape[0])
 
     # Title defaults to the source filename for traceability
     title_path = "ENTRY.title"
@@ -804,30 +949,51 @@ def write_hdf5_nexus(out_path: Path, data: dict, metadata: dict) -> None:
         # 1. Write the complete metadata hierarchy (PROJECT, SAMPLE, ENTRY)
         _write_nexus_structure(f, NEXUS_SCHEMA, flat_data, ensure_complete=True)
 
-        # 2. Write spectral data into ENTRY/data (NXdata)
-        entry = f["ENTRY"] if "ENTRY" in f else f.create_group("ENTRY")
-        if "NX_class" not in entry.attrs:
-            entry.attrs["NX_class"] = "NXentry"
-            entry.attrs["definition"] = "NXraman"
+        # 2. Validate canonical geometry, then write ENTRY/data (NXdata)
+        validate_canonical(data)
+        mode = data.get("coordinate_mode", COORDINATE_MODE_POINTS)
 
         data_grp = entry.create_group("data")
         data_grp.attrs["NX_class"] = "NXdata"
-        data_grp.attrs["signal"]   = "intensity"
-        data_grp.attrs["axes"]     = ["y", "x", "raman_shift"]
-
-        # Intensity cube: shape (ny, nx, n_wavenumbers), gzip-compressed
-        data_grp.create_dataset(
-            "intensity", data=data["cube"], compression="gzip", chunks=True
-        )
         data_grp.create_dataset("raman_shift", data=data["raman_shift"])
-        data_grp.create_dataset("x",           data=data["x_axis"])
-        data_grp.create_dataset("y",           data=data["y_axis"])
-        ny, nx, n_wn = data["cube"].shape
-        data_grp.attrs["spectral_count"] = int(ny * nx)
-        data_grp.attrs["nx"]             = int(nx)
-        data_grp.attrs["ny"]             = int(ny)
-        data_grp.attrs["n_wavenumbers"]  = int(n_wn)
-        data_grp.create_dataset("spectral_count", data=int(ny * nx))
+
+        # Provenance coordinate (comune a entrambe le geometrie)
+        for k in ("coordinate_mode", "coordinate_source", "coordinate_units",
+                  "coordinate_validated", "reshape_applied", "reshape_source",
+                  "geometry_warning"):
+            if data.get(k) is not None:
+                data_grp.attrs[k] = data[k]
+
+        if mode == COORDINATE_MODE_REGULAR:
+            cube = data["cube"]
+            ny, nx, n_wn = cube.shape
+            data_grp.attrs["signal"] = "intensity"
+            data_grp.attrs["axes"]   = ["y", "x", "raman_shift"]
+            data_grp.create_dataset(
+                "intensity", data=cube, compression="gzip", chunks=True
+            )
+            data_grp.create_dataset("x", data=data["x_axis"])
+            data_grp.create_dataset("y", data=data["y_axis"])
+            n_points = int(ny * nx)
+            data_grp.attrs["nx"]            = int(nx)
+            data_grp.attrs["ny"]            = int(ny)
+            data_grp.attrs["n_wavenumbers"] = int(n_wn)
+        else:  # point_coordinates
+            spec = np.asarray(data["spectra"])
+            n_points, n_wn = spec.shape
+            data_grp.attrs["signal"] = "spectra"
+            data_grp.attrs["axes"]   = ["point_id", "raman_shift"]
+            data_grp.create_dataset(
+                "spectra", data=spec, compression="gzip", chunks=True
+            )
+            data_grp.create_dataset("x", data=np.asarray(data["x"]))
+            data_grp.create_dataset("y", data=np.asarray(data["y"]))
+            data_grp.create_dataset("point_id", data=np.arange(n_points))
+            data_grp.attrs["n_points"]      = int(n_points)
+            data_grp.attrs["n_wavenumbers"] = int(n_wn)
+
+        data_grp.attrs["spectral_count"] = int(n_points)
+        data_grp.create_dataset("spectral_count", data=int(n_points))
 
         # 3. Write auxiliary images (white-light and acquisition map; WDF only)
         if data["white_light"] is not None or data["acquisition_map"] is not None:
@@ -879,28 +1045,30 @@ def write_hdf5_nexus(out_path: Path, data: dict, metadata: dict) -> None:
 
 def export_csv(data: dict, out_path: Path) -> None:
     """
-    Esporta i dati spettrali in un file flat CSV
+    Esporta i dati spettrali in CSV flat, in funzione di coordinate_mode.
 
-    Ogni riga corrisponde a un punto di acquisizione
-    le prime due colonne contengono le coordinate spaziali (x_um, y_um)
-    mentre le colonne successive riportano l'intensità a ciascun numero d'onda
-
-    Parametri
-    ----------
-    data : dict
-        Spectral data dictionary (come restituito da ``process_wdf`` o
-        ``process_txt_spectrum``)
-    out_path : Path
-        Percorso di destinazione del file CSV
+    regular_grid       → x_um | y_um | wn_1 ... wn_n        (via meshgrid)
+    point_coordinates  → point_id | x | y | wn_1 ... wn_n   (punto-per-punto)
     """
-    ny, nx, n_pts = data["cube"].shape
-    XX, YY = np.meshgrid(data["x_axis"], data["y_axis"])
-    flat = np.column_stack([
-        XX.flatten(),
-        YY.flatten(),
-        data["cube"].reshape(ny * nx, n_pts),
-    ])
-    columns = ["x_um", "y_um"] + [f"{w:.4f}" for w in data["raman_shift"]]
+    mode = data.get("coordinate_mode", COORDINATE_MODE_POINTS)
+    rs_cols = [f"{w:.4f}" for w in np.asarray(data["raman_shift"])]
+
+    if mode == COORDINATE_MODE_REGULAR:
+        ny, nx, n_pts = data["cube"].shape
+        XX, YY = np.meshgrid(data["x_axis"], data["y_axis"])
+        flat = np.column_stack([
+            XX.flatten(), YY.flatten(),
+            data["cube"].reshape(ny * nx, n_pts),
+        ])
+        columns = ["x_um", "y_um"] + rs_cols
+    else:
+        spec = np.asarray(data["spectra"])
+        n_points = spec.shape[0]
+        flat = np.column_stack([
+            np.arange(n_points), np.asarray(data["x"]), np.asarray(data["y"]), spec,
+        ])
+        columns = ["point_id", "x", "y"] + rs_cols
+
     pd.DataFrame(flat, columns=columns).to_csv(out_path, index=False)
 
 
