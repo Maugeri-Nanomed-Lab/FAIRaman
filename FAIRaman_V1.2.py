@@ -949,6 +949,11 @@ def write_hdf5_nexus(out_path: Path, data: dict, metadata: dict) -> None:
         # 1. Write the complete metadata hierarchy (PROJECT, SAMPLE, ENTRY)
         _write_nexus_structure(f, NEXUS_SCHEMA, flat_data, ensure_complete=True)
 
+        entry = f["ENTRY"]
+        if "NX_class" not in entry.attrs:
+            entry.attrs["NX_class"] = "NXentry"
+            entry.attrs["definition"] = "NXraman"
+        
         # 2. Validate canonical geometry, then write ENTRY/data (NXdata)
         validate_canonical(data)
         mode = data.get("coordinate_mode", COORDINATE_MODE_POINTS)
