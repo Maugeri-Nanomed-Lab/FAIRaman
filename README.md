@@ -11,7 +11,7 @@ It converts raw spectral measurements into **self-describing HDF5 files** enrich
 
 Each file includes a machine-readable `data_license` field and a full schema that is always written — even for empty fields — so that batch processing across datasets never encounters schema-mismatch errors.
 
----
+----
 
 ## FAIR Compliance
 
