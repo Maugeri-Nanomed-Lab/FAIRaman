@@ -1694,10 +1694,10 @@ def write_hdf5_nexus(out_path: Path, data: dict, metadata: dict) -> None:
         else:  # point_coordinates
             spec = np.asarray(data["spectra"])
             n_points, n_wn = spec.shape
-            data_grp.attrs["signal"] = "spectra"
+            data_grp.attrs["signal"] = "intensity"
             data_grp.attrs["axes"]   = ["point_id", "raman_shift"]
             data_grp.create_dataset(
-                "spectra", data=spec, compression="gzip", chunks=True
+                "intensity", data=spec, compression="gzip", chunks=True
             )
             data_grp.create_dataset("x", data=np.asarray(data["x"]))
             data_grp.create_dataset("y", data=np.asarray(data["y"]))
