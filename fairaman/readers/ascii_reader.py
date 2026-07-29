@@ -7,6 +7,7 @@ into the standard spectral-data dictionary used throughout FAIRaman.
 
 from pathlib import Path
 import numpy as np
+import pandas as pd
 from fairaman.readers import wdf_reader, ascii_reader
 from fairaman.constant import COORDINATE_MODE_REGULAR, COORDINATE_MODE_POINTS
 
@@ -74,7 +75,7 @@ def process_txt_spectrum(txt_path: Path) -> dict:
             "y_step": 0.0,
         }
 
-        out = _canonical_defaults()
+        out = wdf_reader._canonical_defaults()
         out.update({
             "cube":             None,
             "spectra":          None,

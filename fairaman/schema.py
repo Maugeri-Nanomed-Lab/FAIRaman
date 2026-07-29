@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 
 NEXUS_SCHEMA = {
     "PROJECT": {

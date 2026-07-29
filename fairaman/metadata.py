@@ -4,6 +4,7 @@ Metadata parsing utilities for FAIRaman.
 from pathlib import Path
 import json
 import numpy as np
+import pandas as pd
 
 class NumpyEncoder(json.JSONEncoder):
     """
