@@ -101,16 +101,16 @@ git clone https://github.com/Maugeri-Nanomed-Lab/FAIRaman.git
 cd FAIRaman
 ```
 
-Run the current v1.3 script:
+Run the current main script:
 
 ```bash
-python FAIRaman_V1.3.py
+python main.py
 ```
 
 If you are using the unversioned script name:
 
 ```bash
-python FAIRaman.py
+python main.py
 ```
 
 The GUI will open and guide the conversion workflow.
