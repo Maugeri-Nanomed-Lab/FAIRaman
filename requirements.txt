@@ -1,0 +1,12 @@
+# Core scientific libraries
+numpy>=1.24
+pandas>=2.0
+h5py>=3.9
+matplotlib>=3.7
+Pillow>=10.0
+
+# Excel support
+openpyxl>=3.1
+
+# Optional - Renishaw WDF reader
+renishawWiRE
