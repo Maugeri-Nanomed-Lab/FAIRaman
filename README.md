@@ -468,25 +468,6 @@ The software helps structure metadata. It does not magically make sensitive data
 
 ---
 
-## Repository structure
-
-```text
-FAIRaman/
-├── FAIRaman.py
-├── FAIRaman_V1.3.py
-├── README.md
-├── LICENSE.md
-├── metadata_mapping.md
-├── metadata_spec_v1.3.md
-├── fairaman_canonical_data_model.svg
-├── examples/
-└── templates/
-```
-
-The `templates/` folder provides starting metadata files for project/sample/assay annotation.
-
----
-
 ## Roadmap
 
 Planned or desirable future developments include:
