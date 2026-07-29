@@ -67,6 +67,7 @@ Optional:
 Author
 ------
 Davide Piccapietra
+Mahin Vazifehdan
 
 License
 -------
