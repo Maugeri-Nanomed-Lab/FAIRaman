@@ -13,7 +13,6 @@ from fairaman.schema import HDF5_FIELDS
 from fairaman.metadata import parse_txt_metadata
 from fairaman.conversion.wdf_pipeline import _run_conversion_wdf
 from fairaman.conversion.ascii_pipeline import _run_conversion_txt
-from fairaman.conversion.riverd_pipeline import _run_conversion_riverd
 
 # ── Optional: Renishaw WDF reader ─────────────────────────────────────────────
 try:
@@ -403,13 +402,8 @@ def launch_gui() -> None:
                 state, frames, var_hdf5, var_json, var_csv,
                 progress_var, progress_bar, root
             )
-        elif mode_var.get() == "txt":
+        else: # Nomatter ascii or RiverD mode, use the same TXT pipeline
             _run_conversion_txt(
-                state, frames, var_hdf5, var_json, var_csv,
-                progress_var, progress_bar, root
-            )
-        elif mode_var.get() == "riverd":
-            _run_conversion_riverd(
                 state, frames, var_hdf5, var_json, var_csv,
                 progress_var, progress_bar, root
             )
