@@ -54,7 +54,7 @@ It is not proposed as a final universal standard. It is a pragmatic operational 
 - Support for vendor-neutral ASCII/CSV spectral files
 - Export to **HDF5/NeXus**, **JSON**, and **CSV**
 - Complete metadata schema written in every HDF5 file, even when fields are empty
-- Automatic evaluation for the original and converted data
+- Automatic validation of converted data against the original source data
 - Automatic first-guess mapping of TXT/Excel metadata fields to HDF5 paths
 - Support for Italian and English metadata aliases
 - Geometry-aware handling of Raman maps and point spectra
