@@ -5,10 +5,14 @@
 import traceback
 from pathlib import Path
 import tkinter as tk
+import numpy as np
+import h5py
 from tkinter import messagebox, ttk
+from fairaman.validation import verify_conversion
 from fairaman.metadata_management import _load_metadata_sources, _assemble_flat_data, _get_excel_row
 from fairaman.readers.ascii_reader import process_txt_spectrum
 from fairaman.writers.hdf5_writer import write_hdf5_nexus, export_json, export_csv
+
 
 def _run_conversion_txt(state: dict, frames: dict,
                         var_hdf5: tk.BooleanVar, var_json: tk.BooleanVar,
@@ -99,7 +103,15 @@ def _run_conversion_txt(state: dict, frames: dict,
             spec_data = process_txt_spectrum(sp_path)
 
             if var_hdf5.get():
-                write_hdf5_nexus(out_dir / f"{stem}.h5", spec_data, metadata)
+                h5_path = out_dir / f"{stem}.h5"
+                write_hdf5_nexus(h5_path, spec_data, metadata)
+
+                ok, issues = verify_conversion(spec_data, h5_path)
+                if not ok:
+                    raise ValueError(
+                        "HDF5 round-trip validation failed:\n  - "
+                        + "\n  - ".join(issues)
+                    )
             if var_json.get():
                 export_json(metadata, out_dir / f"{stem}.json")
             if var_csv.get():
@@ -127,3 +139,5 @@ def _show_completion_report(progress_var: tk.StringVar, success: int,
             msg += f"\n  … and {len(failed) - 5} more"
     msg += f"\n\n📁 Output written to:\n{out_dir}"
     messagebox.showinfo("FAIRaman — Conversion complete", msg)
+
+
