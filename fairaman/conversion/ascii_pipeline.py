@@ -112,6 +112,8 @@ def _run_conversion_txt(state: dict, frames: dict,
                         "HDF5 round-trip validation failed:\n  - "
                         + "\n  - ".join(issues)
                     )
+                else:
+                    print(f"[FAIRaman] ✅ {sp_path.name} → {h5_path.name}")
             if var_json.get():
                 export_json(metadata, out_dir / f"{stem}.json")
             if var_csv.get():
