@@ -249,7 +249,7 @@ def write_hdf5_nexus(out_path: Path, data: dict, metadata: dict) -> None:
             data_grp.attrs["n_wavenumbers"] = int(n_wn)
 
         data_grp.attrs["spectral_count"] = int(n_points)
-        data_grp.create_dataset("spectral_count", data=int(n_points))
+        #data_grp.create_dataset("spectral_count", data=int(n_points))
 
         # 3. Write auxiliary images (white-light and acquisition map; WDF only)
         if data["white_light"] is not None or data["acquisition_map"] is not None:
