@@ -292,7 +292,6 @@ def write_hdf5_nexus(out_path: Path, data: dict, metadata: dict) -> None:
 
         # Root-level provenance attributes
         f.attrs["source_format"]    = data.get("source_format", "unknown")
-        f.attrs["fairaman_version"] = FAIRAMAN_VERSION
         f.create_dataset("version FAIRaman", data=FAIRAMAN_VERSION)
      
 def export_csv(data: dict, out_path: Path) -> None:
