@@ -51,6 +51,7 @@ It is not proposed as a final universal standard. It is a pragmatic operational 
 
 - Graphical user interface for batch conversion
 - Support for **Renishaw WDF** files through `renishawWiRE`
+- Support for **RiverICon_SRM1** files through `RiverD`
 - Support for vendor-neutral ASCII/CSV spectral files
 - Export to **HDF5/NeXus**, **JSON**, and **CSV**
 - Complete metadata schema written in every HDF5 file, even when fields are empty
@@ -461,12 +462,10 @@ The software helps structure metadata. It does not magically make sensitive data
 
 ## Notes and limitations
 
-- WDF support requires `renishawWiRE`.
 - The WDF acquisition-map overlay is intended for qualitative spatial context and may not represent exact spatial alignment, because some WDF image transformations are undocumented.
 - ASCII files without physical coordinates are exported with synthetic coordinates and explicit coordinate provenance.
 - FAIRaman currently focuses on Raman spectroscopy. Extension to related optical datasets, such as infrared or hyperspectral imaging, is conceptually possible but not yet implemented as a stable feature.
 - A future RamanSPy adapter is planned for additional vendor formats such as Horiba, WiTec, and MATLAB files. For Renishaw WDF files, FAIRaman uses `renishawWiRE` directly because generic loaders may discard spatial coordinates, white-light images, or laser metadata.
-
 ---
 
 ## Roadmap
