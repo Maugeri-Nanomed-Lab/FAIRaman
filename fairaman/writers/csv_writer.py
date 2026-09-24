@@ -27,10 +27,8 @@ import numpy as np
 import pandas as pd
 import tkinter as tk
 from tkinter import messagebox, ttk
-from readers.wdf_reader import process_wdf
-from readers.ascii_reader import process_txt_spectrum
-
-_CH_CENTROID_THRESHOLD = 2200.0
+from fairaman.readers.wdf_reader import process_wdf
+from fairaman.readers.ascii_reader import process_txt_spectrum
 
 class DatasetConfig:
     """

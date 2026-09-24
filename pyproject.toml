@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fairaman"
+version = "1.4"
+description = "A MIABIS-compliant HDF5/NeXus generator for Raman spectroscopy data"
+readme = "README.md"
+license = { file = "LICENSE.md" }
+requires-python = ">=3.9"
+authors = [
+    { name = "Davide Piccapietra" },
+    { name = "Mahin Vazifehdan" },
+]
+keywords = [
+    "Raman spectroscopy",
+    "FAIR data",
+    "HDF5",
+    "NeXus",
+    "MIABIS",
+    "biobanking",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering",
+]
+
+dependencies = [
+    "numpy",
+    "pandas",
+    "h5py",
+    "Pillow",
+    "matplotlib",
+]
+
+[project.optional-dependencies]
+wdf = ["renishawWiRE"]
+
+[project.scripts]
+fairaman = "fairaman.cli:main"
+
+[project.urls]
+Repository = "https://github.com/Maugeri-Nanomed-Lab/FAIRaman"
+
+[tool.setuptools.packages.find]
+include = ["fairaman*"]

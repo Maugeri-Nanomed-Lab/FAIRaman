@@ -11,8 +11,8 @@ from pathlib import Path
 from fairaman.metadata_management import _guess_hdf5_mapping
 from fairaman.schema import HDF5_FIELDS
 from fairaman.metadata import parse_txt_metadata
-from fairaman.conversion.wdf_pipeline import _run_conversion_wdf
-from fairaman.conversion.ascii_pipeline import _run_conversion_txt
+from fairaman.conversion.wdf_pipeline import run_conversion_wdf
+from fairaman.conversion.ascii_pipeline import run_conversion_txt
 
 # ── Optional: Renishaw WDF reader ─────────────────────────────────────────────
 try:
@@ -398,12 +398,12 @@ def launch_gui() -> None:
         log_text.delete("1.0", "end")
         log_text.configure(state="disabled")
         if mode_var.get() == "wdf":
-            _run_conversion_wdf(
+            run_conversion_wdf(
                 state, frames, var_hdf5, var_json, var_csv,
                 progress_var, progress_bar, root
             )
         else: # Nomatter ascii or RiverD mode, use the same TXT pipeline
-            _run_conversion_txt(
+            run_conversion_txt(
                 state, frames, var_hdf5, var_json, var_csv,
                 progress_var, progress_bar, root
             )
@@ -687,3 +687,4 @@ def _show_completion_report(progress_var: tk.StringVar, success: int,
             msg += f"\n  … and {len(failed) - 5} more"
     msg += f"\n\n📁 Output written to:\n{out_dir}"
     messagebox.showinfo("FAIRaman — Conversion complete", msg)
+

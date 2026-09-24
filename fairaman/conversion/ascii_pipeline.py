@@ -1,65 +1,62 @@
-# ─────────────────────────────────────────────────────────────────────────────
-# CONVERSION PIPELINE — ASCII TXT MODE
-# ─────────────────────────────────────────────────────────────────────────────
+"""
+Conversion pipeline — ASCII/TXT batch mode.
+
+Two layers:
+    convert_ascii_batch() — pure logic. Takes plain paths/booleans, returns a
+                             ConversionResult. No Tkinter dependency.
+    run_conversion_txt()  — thin GUI wrapper around convert_ascii_batch().
+"""
 
 import traceback
 from pathlib import Path
+from typing import Callable, Optional
+
 import tkinter as tk
-import numpy as np
-import h5py
-from tkinter import messagebox, ttk
+from tkinter import ttk, messagebox
+
 from fairaman.validation import verify_conversion
 from fairaman.metadata_management import _load_metadata_sources, _assemble_flat_data, _get_excel_row
 from fairaman.readers.ascii_reader import process_txt_spectrum
 from fairaman.writers.hdf5_writer import write_hdf5_nexus, export_json, export_csv
+from fairaman.gui_helpers import _show_completion_report
+from fairaman.conversion.wdf_pipeline import ConversionResult
 
 
-def _run_conversion_txt(state: dict, frames: dict,
-                        var_hdf5: tk.BooleanVar, var_json: tk.BooleanVar,
-                        var_csv: tk.BooleanVar, progress_var: tk.StringVar,
-                        progress_bar: ttk.Progressbar, root: tk.Tk) -> None:
+def convert_ascii_batch(
+    spectra_dir: Path,
+    txt_path: Path,
+    out_dir: Path,
+    txt_meta,
+    excel_map,
+    filename_col,
+    empty_row,
+    frames,
+    write_hdf5: bool = True,
+    write_json: bool = False,
+    write_csv: bool = False,
+    progress_callback: Optional[Callable[[int, int, str], None]] = None,
+) -> ConversionResult:
     """
-    Performs batch conversion of ASCII spectral files into the FAIRaman
-    HDF5/NeXus format.
+    Convert every ASCII spectral file (.txt/.csv/.dat) in `spectra_dir` into
+    the requested output formats. `txt_path` (the metadata TXT file) is
+    excluded from the input list even if it lives in the same folder.
 
-    The workflow is identical to `_run_conversion_wdf`, but is applied to
-    two-column ASCII spectral files (`.txt`, `.csv`, `.dat`). The TXT metadata
-    file is automatically excluded from the list of input spectra, even if it is
-    located in the same directory.
+    See `convert_wdf_batch` for the meaning of the shared parameters.
 
-    To associate metadata from the Excel file, the same `_get_excel_row`
-    function used by the WDF pipeline is employed, ensuring consistent
-    filename-matching behavior across both workflows.
-
-    Files for which no corresponding row is found in the Excel file are
-    skipped and reported in the final summary. If no Excel file is provided,
-    all files are still converted using only the metadata from the TXT file.
+    Raises
+    ------
+    ValueError
+        If `spectra_dir` doesn't exist or contains no spectral files.
     """
-    if not all(state["paths"].get(k) for k in ("spectra_dir", "txt", "out")):
-        messagebox.showerror(
-            "Error",
-            "Please select: Spectra folder, Metadata TXT file, Output folder."
-        )
-        return
+    spectra_dir = Path(spectra_dir)
+    out_dir = Path(out_dir)
 
-    spectra_dir = state["paths"]["spectra_dir"]
     if not spectra_dir.is_dir():
-        messagebox.showerror("Error", f"Invalid spectra directory:\n{spectra_dir}")
-        return
+        raise ValueError(f"Invalid spectra directory: {spectra_dir}")
 
-    try:
-        txt_meta, _, excel_map, filename_col, empty_row = (
-            _load_metadata_sources(state, frames)
-        )
-    except Exception as exc:
-        messagebox.showerror("Error", f"Could not load metadata:\n{exc}")
-        return
-
-    out_dir = state["paths"]["out"]
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    # Collect input spectra, excluding the metadata TXT file if co-located
-    meta_resolved = state["paths"]["txt"].resolve()
+    meta_resolved = Path(txt_path).resolve()
     spectra_files = [
         p for p in spectra_dir.glob("*.txt") if p.resolve() != meta_resolved
     ]
@@ -67,19 +64,16 @@ def _run_conversion_txt(state: dict, frames: dict,
     spectra_files += sorted(spectra_dir.glob("*.dat"))
 
     if not spectra_files:
-        messagebox.showwarning(
-            "Warning", f"No spectral files (.txt/.csv/.dat) found in:\n{spectra_dir}"
+        raise ValueError(
+            f"No spectral files (.txt/.csv/.dat) found in: {spectra_dir}"
         )
-        return
 
     total, success_count, failed = len(spectra_files), 0, []
-    progress_bar["maximum"] = total
-    progress_bar["value"]   = 0
 
     for idx, sp_path in enumerate(spectra_files, 1):
         try:
-            progress_var.set(f"Processing {idx}/{total}: {sp_path.name}")
-            root.update_idletasks()
+            if progress_callback is not None:
+                progress_callback(idx, total, sp_path.name)
 
             stem = sp_path.stem
 
@@ -102,7 +96,7 @@ def _run_conversion_txt(state: dict, frames: dict,
                          "txt_meta": txt_meta}
             spec_data = process_txt_spectrum(sp_path)
 
-            if var_hdf5.get():
+            if write_hdf5:
                 h5_path = out_dir / f"{stem}.h5"
                 write_hdf5_nexus(h5_path, spec_data, metadata)
 
@@ -112,34 +106,71 @@ def _run_conversion_txt(state: dict, frames: dict,
                         "HDF5 round-trip validation failed:\n  - "
                         + "\n  - ".join(issues)
                     )
-                else:
-                    print(f"[FAIRaman] ✅ {sp_path.name} → {h5_path.name}")
-            if var_json.get():
+                print(f"[FAIRaman] ✅ {sp_path.name} → {h5_path.name}")
+
+            if write_json:
                 export_json(metadata, out_dir / f"{stem}.json")
-            if var_csv.get():
+            if write_csv:
                 export_csv(spec_data, out_dir / f"{stem}.csv")
 
             success_count += 1
-            progress_bar["value"] = idx
 
         except Exception as exc:
             failed.append(f"{sp_path.name}: {exc}")
             print(f"[FAIRaman] ERROR processing {sp_path.name}:")
             traceback.print_exc()
-            
-    _show_completion_report(progress_var, success_count, total, failed, out_dir)
 
-def _show_completion_report(progress_var: tk.StringVar, success: int,
-                            total: int, failed: list, out_dir: Path) -> None:
-    """Display a modal summary dialog at the end of a batch conversion."""
-    progress_var.set("Conversion complete.")
-    msg = f"Conversion complete.\n\n✅ Files processed: {success}/{total}\n"
-    if failed:
-        msg += f"\n❌ Files with errors: {len(failed)}\n"
-        msg += "\n".join(f"  • {e}" for e in failed[:5])
-        if len(failed) > 5:
-            msg += f"\n  … and {len(failed) - 5} more"
-    msg += f"\n\n📁 Output written to:\n{out_dir}"
-    messagebox.showinfo("FAIRaman — Conversion complete", msg)
+    return ConversionResult(total=total, success_count=success_count,
+                             failed=failed, out_dir=out_dir)
 
 
+def run_conversion_txt(state: dict, frames: dict,
+                        var_hdf5: tk.BooleanVar, var_json: tk.BooleanVar,
+                        var_csv: tk.BooleanVar, progress_var: tk.StringVar,
+                        progress_bar: ttk.Progressbar, root: tk.Tk) -> None:
+    """
+    GUI wrapper: reads Tkinter state/widgets, runs `convert_ascii_batch`,
+    and reports the outcome via the progress bar and dialogs.
+    """
+    if not all(state["paths"].get(k) for k in ("spectra_dir", "txt", "out")):
+        messagebox.showerror(
+            "Error",
+            "Please select: Spectra folder, Metadata TXT file, Output folder."
+        )
+        return
+
+    try:
+        txt_meta, _, excel_map, filename_col, empty_row = (
+            _load_metadata_sources(state, frames)
+        )
+    except Exception as exc:
+        messagebox.showerror("Error", f"Could not load metadata:\n{exc}")
+        return
+
+    def _on_progress(idx: int, total: int, filename: str) -> None:
+        progress_bar["maximum"] = total
+        progress_var.set(f"Processing {idx}/{total}: {filename}")
+        progress_bar["value"] = idx
+        root.update_idletasks()
+
+    try:
+        result = convert_ascii_batch(
+            spectra_dir=state["paths"]["spectra_dir"],
+            txt_path=state["paths"]["txt"],
+            out_dir=state["paths"]["out"],
+            txt_meta=txt_meta,
+            excel_map=excel_map,
+            filename_col=filename_col,
+            empty_row=empty_row,
+            frames=frames,
+            write_hdf5=var_hdf5.get(),
+            write_json=var_json.get(),
+            write_csv=var_csv.get(),
+            progress_callback=_on_progress,
+        )
+    except ValueError as exc:
+        messagebox.showerror("Error", str(exc))
+        return
+
+    _show_completion_report(progress_var, result.success_count, result.total,
+                             result.failed, result.out_dir)

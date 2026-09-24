@@ -20,6 +20,8 @@ import numpy as np
 import pandas as pd
 from PIL import Image
 
+from fairaman.constant import COORDINATE_MODE_REGULAR, COORDINATE_MODE_POINTS
+
 try:
     from renishawWiRE import WDFReader
 
@@ -67,9 +69,6 @@ except ImportError:
 #   white_light           np.ndarray   immagine RGB opzionale
 #   acquisition_map       np.ndarray   overlay RGB opzionale
 # ─────────────────────────────────────────────────────────────────────────────
-
-COORDINATE_MODE_REGULAR = "regular_grid"
-COORDINATE_MODE_POINTS  = "point_coordinates"
 
 def _canonical_defaults() -> dict:
     """Campi di provenance coordinate al loro default 'sintetico/non validato'.

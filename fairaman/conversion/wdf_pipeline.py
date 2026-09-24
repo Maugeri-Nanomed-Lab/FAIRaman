@@ -1,125 +1,103 @@
 """
-Renishaw WDF Raman spectrum reader.
+Conversion pipeline — WDF batch mode.
 
-This module reads WDF files, extracts Raman spectra, spatial coordinates,
-white-light images, and acquisition maps.
+Two layers:
+    convert_wdf_batch()  — pure logic. Takes plain paths/booleans, returns a
+                            ConversionResult. No Tkinter dependency — usable
+                            from a script, notebook, or another GUI.
+    run_conversion_wdf() — thin GUI wrapper. Reads Tkinter widgets/state,
+                            calls convert_wdf_batch(), updates the progress
+                            bar, and shows dialogs.
 """
-# ── Standard library ──────────────────────────────────────────────────────────
-import ctypes
-import json
-import sys
+
 import traceback
-from io import BytesIO
+from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Callable, Optional
 
-# ── Third-party ───────────────────────────────────────────────────────────────
-import h5py
-import re
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
 import tkinter as tk
-from tkinter import ttk, filedialog, messagebox
-from PIL import Image
+from tkinter import ttk, messagebox
 
-# ── Internal party ───────────────────────────────────────────────────────────────
-from fairaman.readers import wdf_reader, ascii_reader
-from fairaman.metadata_management import _normalise_stem, _assemble_flat_data, \
-    _get_excel_row, _load_metadata_sources
+from fairaman.metadata_management import _assemble_flat_data, _get_excel_row, _load_metadata_sources
 from fairaman.readers.wdf_reader import process_wdf
 from fairaman.validation import verify_conversion
-from fairaman.writers.hdf5_writer import write_hdf5_nexus
-from fairaman.writers.hdf5_writer import export_json, export_csv
+from fairaman.writers.hdf5_writer import write_hdf5_nexus, export_json, export_csv
+from fairaman.gui_helpers import _show_completion_report
 
-# ── Optional: Renishaw WDF reader ─────────────────────────────────────────────
-try:
-    from renishawWiRE import WDFReader
-    HAS_WDF = True
-except ImportError:
-    HAS_WDF = False
-    print(
-        "[FAIRaman] INFO: renishawWiRE is not installed — WDF mode unavailable.\n"
-        "           To enable: pip install renishawWiRE"
-    )
 
-# ── Windows DPI awareness ─────────────────────────────────────────────────────
-try:
-    ctypes.windll.shcore.SetProcessDpiAwareness(1)
-except Exception:
-    pass
+@dataclass
+class ConversionResult:
+    """Outcome of a batch conversion run."""
+    total: int
+    success_count: int
+    failed: list = field(default_factory=list)
+    out_dir: Optional[Path] = None
 
-COORDINATE_MODE_REGULAR = "regular_grid"
-COORDINATE_MODE_POINTS  = "point_coordinates"
 
-def _run_conversion_wdf(state: dict, frames: dict,
-                        var_hdf5: tk.BooleanVar, var_json: tk.BooleanVar,
-                        var_csv: tk.BooleanVar, progress_var: tk.StringVar,
-                        progress_bar: ttk.Progressbar, root: tk.Tk) -> None:
+def convert_wdf_batch(
+    wdf_dir: Path,
+    out_dir: Path,
+    txt_meta,
+    excel_map,
+    filename_col,
+    empty_row,
+    frames,
+    write_hdf5: bool = True,
+    write_json: bool = False,
+    write_csv: bool = False,
+    progress_callback: Optional[Callable[[int, int, str], None]] = None,
+) -> ConversionResult:
     """
-    Performs batch conversion of WDF files into the FAIRaman HDF5/NeXus format.
+    Convert every WDF file in `wdf_dir` into the requested output formats.
 
-    For each WDF file found in the input directory, the function:
-        1) normalizes the filename (without its extension) and searches for the
-        corresponding row in the Excel file using `_get_excel_row`
-        (first attempting an exact match, then a more permissive lookup);
-        2) builds the metadata dictionary by combining information from the TXT
-        file (Investigation/Assay levels) with metadata from the Excel file
-        (Sample level), according to the mappings defined in the GUI;
-        3) reads the spectral cube from the WDF file together with the optional
-        white-light image;
-        4) generates the selected output files (HDF5, JSON, and/or CSV).
+    Parameters
+    ----------
+    wdf_dir
+        Folder containing the .wdf files to convert.
+    out_dir
+        Folder where outputs are written (created if missing).
+    txt_meta, excel_map, filename_col, empty_row, frames
+        Metadata already loaded via `_load_metadata_sources` (or assembled
+        by hand for non-GUI use).
+    write_hdf5, write_json, write_csv
+        Which output formats to produce for each file.
+    progress_callback
+        Optional callable `(index, total, filename) -> None`, invoked before
+        each file is processed. Pass `None` for silent operation (e.g. in a
+        script). A GUI wrapper can use this to update a progress bar.
 
-    Files for which no corresponding row is found in the Excel file are
-    skipped and reported in the final summary. If no Excel file is provided,
-    all files are still converted using only the metadata from the TXT file.
+    Returns
+    -------
+    ConversionResult
+        Summary of the run: total files, successes, and per-file failures.
+
+    Raises
+    ------
+    ValueError
+        If `wdf_dir` doesn't exist or contains no .wdf files.
     """
-    if not HAS_WDF:
-        messagebox.showerror(
-            "Error",
-            "renishawWiRE is not installed.\nInstall it with: pip install renishawWiRE"
-        )
-        return
+    wdf_dir = Path(wdf_dir)
+    out_dir = Path(out_dir)
 
-    if not all(state["paths"].get(k) for k in ("wdf", "txt", "out")):
-        messagebox.showerror(
-            "Error", "Please select: WDF folder, Metadata TXT file, Output folder."
-        )
-        return
-
-    wdf_dir = state["paths"]["wdf"]
     if not wdf_dir.is_dir():
-        messagebox.showerror("Error", f"Invalid WDF directory:\n{wdf_dir}")
-        return
+        raise ValueError(f"Invalid WDF directory: {wdf_dir}")
 
-    try:
-        txt_meta, _, excel_map, filename_col, empty_row = (
-            _load_metadata_sources(state, frames)
-        )
-    except Exception as exc:
-        messagebox.showerror("Error", f"Could not load metadata:\n{exc}")
-        return
-
-    out_dir = state["paths"]["out"]
     out_dir.mkdir(parents=True, exist_ok=True)
 
     wdf_files = sorted({f for f in wdf_dir.glob("*") if f.suffix.lower() == ".wdf"})
     if not wdf_files:
-        messagebox.showwarning("Warning", f"No WDF files found in:\n{wdf_dir}")
-        return
+        raise ValueError(f"No WDF files found in: {wdf_dir}")
 
     total, success_count, failed = len(wdf_files), 0, []
-    progress_bar["maximum"] = total
-    progress_bar["value"]   = 0
 
     for idx, wdf_path in enumerate(wdf_files, 1):
         try:
-            progress_var.set(f"Processing {idx}/{total}: {wdf_path.name}")
-            root.update_idletasks()
+            if progress_callback is not None:
+                progress_callback(idx, total, wdf_path.name)
 
             stem = wdf_path.stem
 
             if filename_col:
-                # Robust lookup: exact normalised match, then fuzzy fallback
                 excel_row = _get_excel_row(stem, excel_map)
                 if excel_row is None:
                     available = list(excel_map.keys())[:5]
@@ -131,7 +109,6 @@ def _run_conversion_wdf(state: dict, frames: dict,
                     print(f"[FAIRaman] SKIP {stem}: {msg}")
                     continue
             else:
-                # No Excel file loaded — convert with TXT metadata only
                 excel_row = empty_row
 
             flat_data = _assemble_flat_data(txt_meta, excel_row, frames)
@@ -139,7 +116,7 @@ def _run_conversion_wdf(state: dict, frames: dict,
                          "txt_meta": txt_meta}
             spec_data = process_wdf(wdf_path)
 
-            if var_hdf5.get():
+            if write_hdf5:
                 h5_path = out_dir / f"{stem}.h5"
                 write_hdf5_nexus(h5_path, spec_data, metadata)
 
@@ -149,33 +126,69 @@ def _run_conversion_wdf(state: dict, frames: dict,
                         "HDF5 round-trip validation failed:\n  - "
                         + "\n  - ".join(issues)
                     )
-                else:
-                    print(f"[FAIRaman] ✅ {wdf_path.name} → {h5_path.name}")
-            if var_json.get():
+                print(f"[FAIRaman] ✅ {wdf_path.name} → {h5_path.name}")
+
+            if write_json:
                 export_json(metadata, out_dir / f"{stem}.json")
-            if var_csv.get():
+            if write_csv:
                 export_csv(spec_data, out_dir / f"{stem}.csv")
 
             success_count += 1
-            progress_bar["value"] = idx
 
         except Exception as exc:
             failed.append(f"{wdf_path.name}: {exc}")
             print(f"[FAIRaman] ERROR processing {wdf_path.name}:")
             traceback.print_exc()
 
-    _show_completion_report(progress_var, success_count, total, failed, out_dir)
+    return ConversionResult(total=total, success_count=success_count,
+                             failed=failed, out_dir=out_dir)
 
-def _show_completion_report(progress_var: tk.StringVar, success: int,
-                            total: int, failed: list, out_dir: Path) -> None:
-        
-        """Display a modal summary dialog at the end of a batch conversion."""
-        progress_var.set("Conversion complete.")
-        msg = f"Conversion complete.\n\n✅ Files processed: {success}/{total}\n"
-        if failed:
-            msg += f"\n❌ Files with errors: {len(failed)}\n"
-            msg += "\n".join(f"  • {e}" for e in failed[:5])
-            if len(failed) > 5:
-                msg += f"\n  … and {len(failed) - 5} more"
-        msg += f"\n\n📁 Output written to:\n{out_dir}"
-        messagebox.showinfo("FAIRaman — Conversion complete", msg)
+
+def run_conversion_wdf(state: dict, frames: dict,
+                        var_hdf5: tk.BooleanVar, var_json: tk.BooleanVar,
+                        var_csv: tk.BooleanVar, progress_var: tk.StringVar,
+                        progress_bar: ttk.Progressbar, root: tk.Tk) -> None:
+    """
+    GUI wrapper: reads Tkinter state/widgets, runs `convert_wdf_batch`,
+    and reports the outcome via the progress bar and dialogs.
+    """
+    if not all(state["paths"].get(k) for k in ("wdf", "txt", "out")):
+        messagebox.showerror(
+            "Error", "Please select: WDF folder, Metadata TXT file, Output folder."
+        )
+        return
+
+    try:
+        txt_meta, _, excel_map, filename_col, empty_row = (
+            _load_metadata_sources(state, frames)
+        )
+    except Exception as exc:
+        messagebox.showerror("Error", f"Could not load metadata:\n{exc}")
+        return
+
+    def _on_progress(idx: int, total: int, filename: str) -> None:
+        progress_bar["maximum"] = total
+        progress_var.set(f"Processing {idx}/{total}: {filename}")
+        progress_bar["value"] = idx
+        root.update_idletasks()
+
+    try:
+        result = convert_wdf_batch(
+            wdf_dir=state["paths"]["wdf"],
+            out_dir=state["paths"]["out"],
+            txt_meta=txt_meta,
+            excel_map=excel_map,
+            filename_col=filename_col,
+            empty_row=empty_row,
+            frames=frames,
+            write_hdf5=var_hdf5.get(),
+            write_json=var_json.get(),
+            write_csv=var_csv.get(),
+            progress_callback=_on_progress,
+        )
+    except ValueError as exc:
+        messagebox.showerror("Error", str(exc))
+        return
+
+    _show_completion_report(progress_var, result.success_count, result.total,
+                             result.failed, result.out_dir)

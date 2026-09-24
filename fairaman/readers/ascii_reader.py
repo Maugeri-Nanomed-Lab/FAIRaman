@@ -8,7 +8,7 @@ into the standard spectral-data dictionary used throughout FAIRaman.
 from pathlib import Path
 import numpy as np
 import pandas as pd
-from fairaman.readers import wdf_reader, ascii_reader
+from fairaman.readers import wdf_reader
 from fairaman.constant import COORDINATE_MODE_REGULAR, COORDINATE_MODE_POINTS
 
 SUPPORTED_DELIMITERS = (None, ",", ";")
@@ -66,7 +66,7 @@ def process_txt_spectrum(txt_path: Path) -> dict:
     """
 
     def _base_output() -> dict:
-        """Crea il dizionario canonico base per un importer ASCII/CSV."""
+        """Create the base canonical dictionary for an ASCII/CSV importer."""
         instrument_meta = {
             "laser_wavelength": 0.0,
             "x_start": 0.0,

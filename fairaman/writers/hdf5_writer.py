@@ -1,6 +1,4 @@
 import json
-import os
-from datetime import datetime
 from pathlib import Path
 
 import h5py
@@ -9,29 +7,35 @@ import pandas as pd
 
 from fairaman.schema import NEXUS_SCHEMA
 from fairaman.metadata import NumpyEncoder
-from fairaman.constant import COORDINATE_MODE_REGULAR, COORDINATE_MODE_POINTS, FAIRAMAN_VERSION
+from fairaman.constant import COORDINATE_MODE_REGULAR, COORDINATE_MODE_POINTS
 from fairaman.readers.wdf_reader import validate_canonical
-
+from fairaman import FAIRAMAN_VERSION
 
 def _write_dataset(parent: h5py.Group, name: str, value) -> None:
+
     """
-    Crea un dataset HDF5 con il tipo di memorizzazione appropriato
+    Creates an HDF5 dataset using the appropriate storage type.
 
-    gli scalari numerici vengono salvati come dataset numerici nativi
-    gli array NumPy vengono salvati come comprensione gzip (livello 4) e chuking automatico
-    tutti gli altri valori vengono convertiti in stringhe 
-    i valori Pandas NA e NaT vengono mappati su stringhe vuote per evitare errori di serializzazione
-    quando i dati contengono valori mancanti
+    Numeric scalars are stored as native numeric datasets.
+    NumPy arrays are stored using gzip compression (level 4) with
+    automatic chunking.
 
-    Parametri
+    All other values are converted to strings.
+    Pandas NA and NaT values are mapped to empty strings to prevent
+    serialization errors when the data contains missing values.
+
+    Parameters
     ----------
     parent : h5py.Group
-        Parent HDF5 group in cui creare il dataset 
+        Parent HDF5 group in which the dataset will be created.
+
     name : str
-        Dataset name
+        Name of the dataset.
+
     value
-        Valore da scrivere
+        Value to be written to the dataset.
     """
+
     # Treat pandas NA/NaT come empty string
     try:
         if pd.isna(value):
@@ -122,37 +126,44 @@ def _write_nexus_structure(h5grp: h5py.Group, schema: dict, data_dict: dict,
                     _write_dataset(grp, field, val)
 
 def write_hdf5_nexus(out_path: Path, data: dict, metadata: dict) -> None:
+
     """
-    Scrive un file HDF5/NeXus FAIRaman a partire da dati spettrali e matadati
+   Writes an HDF5/NeXus FAIRaman file from spectral data and metadata.
 
-    il file di output contiene tre gruppi a livello radice:
+    The output file contains three root-level groups:
 
-    * ``PROJECT/`` — metadati a livello di indagien (FAIR provenance)
-    * ``SAMPLE/``  — metadati a livello di campione (MIABIS-compliant)
-    * ``ENTRY/``   — metadati sperimentali e dati spettrali (NXraman)
+    * ``PROJECT/`` — Investigation-level metadata (FAIR provenance).
+    * ``SAMPLE/``  — Sample-level metadata (MIABIS-compliant).
+    * ``ENTRY/``   — Experimental metadata and spectral data (NXraman).
 
-    all'interno di ``ENTRY/``, il cubo di intensità spettrale viene memorizzato in
-    ``ENTRY/data/intensity`` come array tridimensinale di shape
-    (ny, nx, n_wavenumbers), con dataset aggiuntivi per l'asse dei numeri d'onda
-    e gli assi spaziali. 
-    per dati derivati da WDF, immagini a white-light e
-    acquisition-map images sono salvate in ``ENTRY/auxiliary/``.
+    Within ``ENTRY/``, the spectral intensity cube is stored in
+    ``ENTRY/data/intensity`` as a three-dimensional array with shape
+    (ny, nx, n_wavenumbers), along with additional datasets for the
+    wavenumber axis and spatial axes.
 
-    gli attributi a livello radice registrano il formato di origine e la versione di FAIRaman 
-    utili per tracciare la provenienza dei dati
+    For WDF-derived data, white-light images and acquisition-map images
+    are stored in ``ENTRY/auxiliary/``.
 
-    Parametri
+    Root-level attributes record the source format and FAIRaman version,
+    providing information for tracking data provenance.
+
+    Parameters
     ----------
     out_path : Path
-        Percorso di destinazione per il file HDF5 di output
+        Destination path for the output HDF5 file.
+
     data : dict
-        Dizionario di dati spettrali restituito da ``process_wdf`` o
-        ``process_txt_spectrum``.
+        Dictionary containing spectral data returned by ``process_wdf``
+        or ``process_txt_spectrum``.
+
     metadata : dict
-        Deve contenere la chiave ``flat_data`` che mappa percorsi HDF5 separati da punti
-        ai valori dei metadati
-        può contenere anceh le chiavi ``excel_row`` e ``txt_meta`` a scopo di debug
+        Must contain the ``flat_data`` key, which maps dot-separated
+        HDF5 paths to metadata values.
+
+        May also contain the optional ``excel_row`` and ``txt_meta``
+        keys for debugging purposes.
     """
+
     flat_data = metadata["flat_data"].copy()
     
     # ── Auto-populate fields derived from the raw data ────────────────────────
@@ -249,7 +260,6 @@ def write_hdf5_nexus(out_path: Path, data: dict, metadata: dict) -> None:
             data_grp.attrs["n_wavenumbers"] = int(n_wn)
 
         data_grp.attrs["spectral_count"] = int(n_points)
-        #data_grp.create_dataset("spectral_count", data=int(n_points))
 
         # 3. Write auxiliary images (white-light and acquisition map; WDF only)
         if data["white_light"] is not None or data["acquisition_map"] is not None:
@@ -295,12 +305,17 @@ def write_hdf5_nexus(out_path: Path, data: dict, metadata: dict) -> None:
         f.create_dataset("version FAIRaman", data=FAIRAMAN_VERSION)
      
 def export_csv(data: dict, out_path: Path) -> None:
-    """
-    Esporta i dati spettrali in CSV flat, in funzione di coordinate_mode.
 
-    regular_grid       → x_um | y_um | wn_1 ... wn_n        (via meshgrid)
-    point_coordinates  → point_id | x | y | wn_1 ... wn_n   (punto-per-punto)
     """
+    Exports spectral data to a flat CSV file based on coordinate_mode.
+
+    regular_grid       → x_um | y_um | wn_1 ... wn_n
+                        (using meshgrid)
+
+    point_coordinates  → point_id | x | y | wn_1 ... wn_n
+                        (point-by-point)
+    """
+
     mode = data.get("coordinate_mode", COORDINATE_MODE_POINTS)
     rs_cols = [f"{w:.4f}" for w in np.asarray(data["raman_shift"])]
 
@@ -324,19 +339,20 @@ def export_csv(data: dict, out_path: Path) -> None:
 
 def export_json(metadata: dict, out_path: Path) -> None:
     """
-    Esporta un file JSON sidecar con i soli metadati mappati (flat_data).
+    Exports a JSON sidecar file containing only the mapped metadata (flat_data).
 
-    Le sezioni raw (excel_row, txt_meta) vengono escluse perché ridondanti:
-    flat_data contiene già tutti i valori, correttamente indicizzati
-    sui percorsi HDF5 dello schema NXraman/MIABIS.
+    The raw sections (excel_row, txt_meta) are excluded because they are
+    redundant: flat_data already contains all metadata values, correctly
+    indexed by the HDF5 paths defined in the NXraman/MIABIS schema.
 
-    Parametri
+    Parameters
     ----------
     metadata : dict
-        Dizionario dei metadati generato durante la pipeline di conversione.
-        Deve contenere la chiave 'flat_data'.
+        Metadata dictionary generated during the conversion pipeline.
+        Must contain the 'flat_data' key.
+
     out_path : Path
-        Destinazione del file JSON.
+        Destination path for the output JSON file.
     """
     flat = metadata.get("flat_data", {})
     flat_serializable = {
