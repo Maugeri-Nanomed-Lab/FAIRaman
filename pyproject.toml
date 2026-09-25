@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fairaman"
-version = "1.4"
+version = "1.5"
 description = "A MIABIS-compliant HDF5/NeXus generator for Raman spectroscopy data"
 readme = "README.md"
 license = { file = "LICENSE.md" }
@@ -35,10 +35,9 @@ dependencies = [
     "h5py",
     "Pillow",
     "matplotlib",
+    "openpyxl",
+    "renishawWiRE",
 ]
-
-[project.optional-dependencies]
-wdf = ["renishawWiRE"]
 
 [project.scripts]
 fairaman = "fairaman.cli:main"
@@ -47,4 +46,11 @@ fairaman = "fairaman.cli:main"
 Repository = "https://github.com/Maugeri-Nanomed-Lab/FAIRaman"
 
 [tool.setuptools.packages.find]
+where = ["src"]
 include = ["fairaman*"]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.package-data]
+fairaman = ["templates/*"]
