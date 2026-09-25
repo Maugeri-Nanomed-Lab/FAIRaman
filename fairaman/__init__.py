@@ -20,6 +20,9 @@ __version__ = "1.4"
 # in several places (e.g. written into HDF5 metadata).
 FAIRAMAN_VERSION = __version__
 
+COORDINATE_MODE_REGULAR = "regular_grid"
+COORDINATE_MODE_POINTS = "point_coordinates"
+
 # ── Public API ────────────────────────────────────────────────────────────
 # Import only what you want users to access directly as `fairaman.X`
 # or `from fairaman import X`. Keep internal helpers (utility, gui internals,
@@ -48,6 +51,9 @@ from fairaman.schema import NEXUS_SCHEMA
 __all__ = [
     "__version__",
     "FAIRAMAN_VERSION",
+    # constants
+    "COORDINATE_MODE_REGULAR",
+    "COORDINATE_MODE_POINTS",
     # readers
     "process_wdf",
     "process_txt_spectrum",

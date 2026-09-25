@@ -11,7 +11,7 @@ from pathlib import Path
 import h5py
 import numpy as np
 
-from fairaman.constant import COORDINATE_MODE_REGULAR, COORDINATE_MODE_POINTS
+from fairaman import COORDINATE_MODE_REGULAR, COORDINATE_MODE_POINTS
 
 
 def verify_conversion(data: dict, h5_path: Path,

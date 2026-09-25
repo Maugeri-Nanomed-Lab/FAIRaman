@@ -7,7 +7,7 @@ import pandas as pd
 
 from fairaman.schema import NEXUS_SCHEMA
 from fairaman.metadata import NumpyEncoder
-from fairaman.constant import COORDINATE_MODE_REGULAR, COORDINATE_MODE_POINTS
+from fairaman import COORDINATE_MODE_REGULAR, COORDINATE_MODE_POINTS
 from fairaman.readers.wdf_reader import validate_canonical
 from fairaman import FAIRAMAN_VERSION
 

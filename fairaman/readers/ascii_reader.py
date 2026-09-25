@@ -9,7 +9,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from fairaman.readers import wdf_reader
-from fairaman.constant import COORDINATE_MODE_REGULAR, COORDINATE_MODE_POINTS
+from fairaman import COORDINATE_MODE_REGULAR, COORDINATE_MODE_POINTS
 
 SUPPORTED_DELIMITERS = (None, ",", ";")
 

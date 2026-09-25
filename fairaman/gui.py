@@ -424,7 +424,7 @@ def launch_gui() -> None:
 
 def _create_filterable_combobox(parent: tk.Widget, width: int = 60):
     """
-    Finestrella selezione 
+    Selection dialog box 
     """
     BG      = "#1e1e2e"
     BG_SEL  = "#89b4fa"
@@ -585,7 +585,7 @@ def _build_mapping_frame(parent: tk.Widget, source_dict: dict,
                          title: str, use_first_guess: bool = True) -> tk.LabelFrame:
     
     """
-    Fa funzionare la finestra scrollabile laga ves
+    Makes the “laga ves” scrollable window work
     """
     BG       = "#1e1e2e"
     BG_PANEL = "#2a2a3e"

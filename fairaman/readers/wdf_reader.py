@@ -20,7 +20,7 @@ import numpy as np
 import pandas as pd
 from PIL import Image
 
-from fairaman.constant import COORDINATE_MODE_REGULAR, COORDINATE_MODE_POINTS
+from fairaman import COORDINATE_MODE_REGULAR, COORDINATE_MODE_POINTS
 
 try:
     from renishawWiRE import WDFReader
