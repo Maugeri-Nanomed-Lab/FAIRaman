@@ -3,28 +3,21 @@ Command-line / GUI entry point for FAIRaman.
 """
 
 import ctypes
+
 from fairaman.gui import launch_gui
 
-# ── Optional: Renishaw WDF reader check ─────────────────────────────────
-try:
-    from renishawWiRE import WDFReader
-    HAS_WDF = True
-except ImportError:
-    HAS_WDF = False
-    print(
-        "[FAIRaman] INFO: renishawWiRE is not installed — WDF mode unavailable.\n"
-        "           To enable: pip install renishawWiRE"
-    )
 
-# ── Windows DPI awareness ────────────────────────────────────────────────
-try:
-    ctypes.windll.shcore.SetProcessDpiAwareness(1)
-except Exception:
-    pass
+def _set_dpi_awareness() -> None:
+    """Enable DPI awareness on Windows when available."""
+    try:
+        ctypes.windll.shcore.SetProcessDpiAwareness(1)
+    except (AttributeError, OSError):
+        pass
 
 
-def main():
-    """Entry point used by the console script and __main__.py."""
+def main() -> None:
+    """Launch the FAIRaman graphical user interface."""
+    _set_dpi_awareness()
     launch_gui()
 
 

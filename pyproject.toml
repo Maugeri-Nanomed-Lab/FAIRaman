@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "fairaman"
 version = "1.5"
-description = "A MIABIS-compliant HDF5/NeXus generator for Raman spectroscopy data"
+description = "A MIABIS-Inspired HDF5/NeXus generator for Raman spectroscopy data"
 readme = "README.md"
 license = { file = "LICENSE.md" }
 requires-python = ">=3.9"

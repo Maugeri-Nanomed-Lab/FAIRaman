@@ -1,5 +1,5 @@
 """
-FAIRaman: A MIABIS-Compliant HDF5 Generator for Raman spectroscopy data.
+FAIRaman: A MIABIS-Inspired HDF5 Generator for Raman spectroscopy data.
 
 Public API
 -----------

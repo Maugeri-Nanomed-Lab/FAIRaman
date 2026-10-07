@@ -91,8 +91,10 @@ def launch_gui() -> None:
     Courier New monospace font, coloured section headers.
     All functional logic (paths, mapping panels, conversion) is unchanged.
     """
+
+    print("RUNNING THIS FILE:", __file__)
     root = tk.Tk()
-    root.title("FAIRaman  \u2014  FAIR/MIABIS-compliant Raman Spectroscopy Converter")
+    root.title("FAIRaman  \u2014  FAIR/MIABIS-Inspired Raman Spectroscopy Converter")
     root.geometry("1200x920")
     root.resizable(True, True)
 
@@ -141,7 +143,7 @@ def launch_gui() -> None:
     hdr.pack(fill="x", padx=20)
     tk.Label(hdr, text="FAIRaman", bg=BG, fg=ACCENT,
              font=("Courier New", 20, "bold")).pack(side="left")
-    tk.Label(hdr, text="  FAIR/MIABIS-compliant Raman Spectroscopy Converter",
+    tk.Label(hdr, text="  FAIR/MIABIS-Inspired Raman Spectroscopy Converter",
              bg=BG, fg=FG, font=FONT_BODY).pack(side="left", pady=4)
 
     # ── Scrollable main area ──────────────────────────────────────────────────
