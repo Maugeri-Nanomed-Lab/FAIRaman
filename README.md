@@ -385,6 +385,7 @@ Root-level attributes include:
 ```text
 source_format
 fairaman_version
+HASH
 ```
 
 A `version FAIRaman` dataset is also written for traceability.
