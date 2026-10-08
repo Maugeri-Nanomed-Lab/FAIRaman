@@ -28,27 +28,26 @@ class NumpyEncoder(json.JSONEncoder):
 
 def parse_txt_metadata(path: Path) -> dict:
     """
-    Analizza un file di metadati in txt e lo trasforma in un key–value dictionary
+    Analyzes a metadata file in .txt format and converts it into a key–value dictionary
 
-    Il formato previsto è ``key: value`` per riga
-    le righe con ``#`` e quelle vuote vengono ignorate
+    The expected format is ``key: value`` per line
+    Lines starting with ``#`` and empty lines are ignored
 
-    Parametri
+    Parameters
     ----------
     path : Path
-        Percorso del file TXT contenente i metadati
+        Path to the TXT file containing the metadata
 
     Returns
     -------
     dict
-        Dizionario che associa i nomi dei campi ai loro valori come stringhe
+        Dictionary that associates field names with their values as strings
 
-    Note
+    Notes
     -----
-    Anche chiavi che iniziano con ``#`` dopo aver rimosso spazi iniziali
-    vengono scartate; 
-    questo previene che campi commentati (es ``# laser_wavelength: 785``) 
-    vengano caricati per errore
+    Even keys that start with ``#``—after removing any leading spaces—
+    are
+
     """
     meta: dict = {}
     with open(path, encoding="utf-8", errors="replace") as fh:

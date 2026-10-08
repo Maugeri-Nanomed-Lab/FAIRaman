@@ -1,9 +1,12 @@
+import hashlib 
 import json
 from pathlib import Path
 
 import h5py
 import numpy as np
 import pandas as pd
+import datetime
+import uuid
 
 from fairaman.schema import NEXUS_SCHEMA
 from fairaman.metadata import NumpyEncoder
@@ -125,6 +128,35 @@ def _write_nexus_structure(h5grp: h5py.Group, schema: dict, data_dict: dict,
                 elif val is not None and val != "":
                     _write_dataset(grp, field, val)
 
+def add_content_hash(f, name="HASH", algorithm="sha256"):
+    """Store one root dataset with a hash that is unique for every write."""
+    if name in f:
+        del f[name]                             # remove an older hash
+
+    names = []
+    f.visititems(lambda n, o: names.append(n) if isinstance(o, h5py.Dataset) else None)
+
+    h = hashlib.new(algorithm)
+    for ds_name in sorted(names):               # sorted -> same order every time
+        ds = f[ds_name]
+        h.update(f"{ds_name}|{ds.shape}".encode("utf-8"))
+
+        if h5py.check_string_dtype(ds.dtype) is not None:      # text datasets
+            for v in np.atleast_1d(ds[()]).ravel().tolist():
+                h.update(v if isinstance(v, bytes) else str(v).encode("utf-8"))
+                h.update(b"\0")
+        else:                                                  # numeric datasets
+            dtype = ds.dtype.newbyteorder("<")                 # platform independent
+            h.update(dtype.str.encode("utf-8"))
+            h.update(np.ascontiguousarray(ds[()], dtype=dtype).tobytes())
+
+    # Make the hash unique for every write: current time + random value
+    h.update(datetime.datetime.now(datetime.timezone.utc).isoformat().encode("utf-8"))
+    h.update(uuid.uuid4().bytes)
+
+    digest = h.hexdigest()
+    f.create_dataset(name, data=digest)
+    return digest
 def write_hdf5_nexus(out_path: Path, data: dict, metadata: dict) -> None:
 
     """
@@ -303,6 +335,8 @@ def write_hdf5_nexus(out_path: Path, data: dict, metadata: dict) -> None:
         # Root-level provenance attributes
         f.attrs["source_format"]    = data.get("source_format", "unknown")
         f.create_dataset("version FAIRaman", data=FAIRAMAN_VERSION)
+
+        add_content_hash(f)        # <-- new, must stay the last line
      
 def export_csv(data: dict, out_path: Path) -> None:
 
