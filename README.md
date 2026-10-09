@@ -68,25 +68,94 @@ It is not proposed as a final universal standard. It is a pragmatic operational 
 
 ## Installation
 
-FAIRaman is currently distributed as a standalone Python script.
+FAIRaman can be installed directly as a Python package or run from its source code. Both methods provide access to the graphical user interface (GUI) for converting Raman spectroscopy data into structured output formats.
 
-Python **3.9 or later** is recommended.
+**Python 3.9 or later** is recommended.
 
-Install the main dependencies:
+### Option 1: Install FAIRaman as a Python package (Recommended)
+
+This is the simplest method for users who want to use FAIRaman without downloading or modifying the source code.
+
+**Step 1. Install FAIRaman**
+
+Open a terminal (Command Prompt, PowerShell, or a Python environment terminal) and run:
+
+```bash
+pip install fairaman
+```
+
+This command installs the FAIRaman package and its declared dependencies from PyPI.
+
+**Step 2. Launch FAIRaman**
+
+After installation, start the application by running:
+
+```bash
+fairaman
+```
+
+The FAIRaman graphical user interface will open, allowing users to import Raman spectroscopy files, configure metadata, and export the converted data.
+
+**Note:** Python and `pip` must already be installed and accessible from the terminal. The `fairaman` command must be executed in the Python environment where the package was installed.
+
+---
+
+### Option 2: Run FAIRaman from source code (`main.py`)
+
+This method is intended for developers and users who want to access, inspect, modify, or contribute to the FAIRaman source code.
+
+**Step 1. Clone the GitHub repository**
+
+Open a terminal and run:
+
+```bash
+git clone https://github.com/Maugeri-Nanomed-Lab/FAIRaman.git
+cd FAIRaman
+```
+
+**Step 2. Install the required dependencies**
+
+Install the main Python dependencies:
 
 ```bash
 pip install numpy pandas h5py matplotlib pillow openpyxl
 ```
 
-To enable Renishaw WDF support:
+To enable Renishaw WDF support, install:
 
 ```bash
 pip install renishawWiRE
 ```
 
-If `renishawWiRE` is not installed, FAIRaman still works in ASCII/CSV mode, but WDF conversion is disabled.
+If `renishawWiRE` is not installed, FAIRaman can still process supported ASCII/CSV files, but WDF conversion will be unavailable.
 
-On some Linux systems, Tkinter may need to be installed separately, for example:
+**Step 3. Install FAIRaman in editable mode**
+
+From the repository's root directory, run:
+
+```bash
+pip install -e .
+```
+
+This installs FAIRaman in editable mode, allowing changes to the source code to be reflected without reinstalling the package.
+
+**Step 4. Launch FAIRaman**
+
+Run the main script:
+
+```bash
+python main.py
+```
+
+The FAIRaman graphical user interface will open and guide users through the conversion workflow.
+
+---
+
+### Additional note for Linux users
+
+On some Linux distributions, Tkinter, which is required for the graphical user interface, may need to be installed separately.
+
+For Debian- or Ubuntu-based systems:
 
 ```bash
 sudo apt-get install python3-tk
@@ -94,23 +163,25 @@ sudo apt-get install python3-tk
 
 ---
 
-## Quick start
+## Quick Start
 
-Clone the repository:
+After installing FAIRaman using either method, launch the application.
+
+**For package installation:**
 
 ```bash
-cd FAIRaman
-git clone https://github.com/Maugeri-Nanomed-Lab/FAIRaman.git
+fairaman
 ```
 
-Run the current main script:
+**For source-code installation:**
 
 ```bash
 python main.py
 ```
-The GUI will open and guide the conversion workflow.
 
----
+Once the GUI opens, users can select their Raman input files, configure the available metadata, choose the desired output format, and start the conversion process.
+
+FAIRaman supports the conversion of compatible Raman spectroscopy data into structured HDF5 files, with optional JSON and CSV outputs for metadata and spectral data, respectively.
 
 ## Typical workflow
 
