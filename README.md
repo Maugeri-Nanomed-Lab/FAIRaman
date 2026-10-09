@@ -407,7 +407,7 @@ Root-level attributes include:
 
 ```text
 source_format
-fairaman_version (Software FAIRaman version)
+fairaman_version (FAIRaman software version)
 HASH (content fingerprint used to verify file integrity)
 ```
 ---
