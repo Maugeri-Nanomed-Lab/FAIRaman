@@ -129,7 +129,7 @@ def _write_nexus_structure(h5grp: h5py.Group, schema: dict, data_dict: dict,
                     _write_dataset(grp, field, val)
 
 def add_content_hash(f, name="HASH", algorithm="sha256"):
-    """Store one root dataset with a hash that is unique for every write."""
+    """Compute a hash of all datasets in an open HDF5 file and store it as one root dataset."""
     if name in f:
         del f[name]                             # remove an older hash
 
@@ -150,13 +150,10 @@ def add_content_hash(f, name="HASH", algorithm="sha256"):
             h.update(dtype.str.encode("utf-8"))
             h.update(np.ascontiguousarray(ds[()], dtype=dtype).tobytes())
 
-    # Make the hash unique for every write: current time + random value
-    h.update(datetime.datetime.now(datetime.timezone.utc).isoformat().encode("utf-8"))
-    h.update(uuid.uuid4().bytes)
-
     digest = h.hexdigest()
-    f.create_dataset(name, data=digest)
+    f.create_dataset(name, data=digest)         # same style as "version FAIRaman"
     return digest
+
 def write_hdf5_nexus(out_path: Path, data: dict, metadata: dict) -> None:
 
     """
