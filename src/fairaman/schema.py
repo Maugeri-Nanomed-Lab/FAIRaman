@@ -6,7 +6,7 @@ NEXUS_SCHEMA = {
         "NX_class": "NXcollection",
         "fields": [
             "project_name", "project_id", "funding", "governance_reference", "author", "author_id",
-            "data_license", "accessibility", "keywords"
+            "data_license", "accessibility", "contact_information", "keywords"
         ]
     },
     "SAMPLE": {

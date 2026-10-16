@@ -228,6 +228,7 @@ author: Carlo Morasso
 author_id: ORCID:0000-0001-9185-0198
 data_license: CC BY-NC 4.0
 accessibility: restricted
+contact: carlo.morasso@icsmaugeri.it
 keywords: Raman spectroscopy; breast cancer; FAIR data
 instrument_name: Renishaw inVia
 laser_wavelength: 532
@@ -414,6 +415,7 @@ FAIRaman.h5
 │   ├── author_id
 │   ├── data_license
 │   ├── accessibility
+│   ├── contact_information
 │   └── keywords
 │
 ├── SAMPLE  (NXsample)
@@ -494,7 +496,7 @@ Examples:
 | `project_name`, `study_name` | `PROJECT.project_name` |
 | `orcid`, `author_id` | `PROJECT.author_id` |
 | `license`, `data_license` | `PROJECT.data_license` |
-| `patient_id`, `paziente` | `SAMPLE.SAMPLE_DONOR.donor_id` |
+| `patient_id`, `patient` | `SAMPLE.SAMPLE_DONOR.donor_id` |
 | `age`, `eta`, `donor_age` | `SAMPLE.SAMPLE_DONOR.donor_age` |
 | `icd10`, `diagnosis_code` | `SAMPLE.SAMPLE_DONOR.diagnosis_code` |
 | `tissue`, `tessuto`, `anatomical_site` | `SAMPLE.SAMPLE_INFO.anatomical_site` |
@@ -564,7 +566,6 @@ The software helps structure metadata. It does not magically make sensitive data
 
 Planned or desirable future developments include:
 
-- packaging as an installable Python package
 - command-line interface for headless batch conversion
 - richer validation reports
 - example notebooks for reading FAIRaman HDF5 files

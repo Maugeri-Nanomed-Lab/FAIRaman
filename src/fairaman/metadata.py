@@ -8,10 +8,10 @@ import pandas as pd
 
 class NumpyEncoder(json.JSONEncoder):
     """
-    encoder JSON che serializza tipi scalari e array di NumPy 
-
-    Gli integers e i float di NumPy vengono convertiti a tipi nativi di Python; 
-    Gli array a liste. Necessario per metadati con valori NumPy letti da WDF o Excel
+  JSON encoder that serializes NumPy scalar types and arrays.
+    - NumPy integers and floats are converted to native Python types.
+    - Arrays are converted to lists.
+    - Necessary for handling metadata containing NumPy values read from WDF or Excel files.
     """
 
     def default(self, obj):

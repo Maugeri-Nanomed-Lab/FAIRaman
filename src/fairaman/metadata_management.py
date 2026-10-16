@@ -58,6 +58,7 @@ _METADATA_ALIASES_RAW = {
 
     "access": "PROJECT.accessibility",
     "accessibility": "PROJECT.accessibility",
+    "contact": "PROJECT.contact_information",
 
     "keywords": "PROJECT.keywords",
     "keyword": "PROJECT.keywords",
