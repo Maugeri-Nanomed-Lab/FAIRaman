@@ -589,7 +589,7 @@ When adding new importers or changing the data model, please keep the canonical 
 
 If you use FAIRaman, please cite the associated manuscript when available:
 
-> Piccapietra D., Bonizzi A., Vazifehdan M., Madarshahi S.N.S., Piccotti F., Truffi M., Albasini S., Corsi F., Morasso C.  
+> Piccapietra D., Vazifehdan M., Bonizzi A., Madarshahi S.N.S., Piccotti F., Truffi M., Albasini S., Corsi F., Morasso C.  
 > **FAIRaman: making clinical Raman spectroscopy data FAIR through biobanking and NeXus standards.**
 
 Citation details will be updated after publication.
