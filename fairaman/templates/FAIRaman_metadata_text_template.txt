@@ -61,6 +61,9 @@ data_license:
 #     Allowed values: open | restricted | embargoed | closed
 accessibility: 
 
+# [R] Contact information for the dataset (e.g. email address of the responsible person)
+contact_information: 
+
 # [R] Comma-separated (or semicolon-separated) keywords describing the content
 #     Example: breast cancer, FFPE, Raman spectroscopy, diagnosis
 keywords: 

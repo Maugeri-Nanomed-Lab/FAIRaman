@@ -46,7 +46,6 @@ fairaman = "fairaman.cli:main"
 Repository = "https://github.com/Maugeri-Nanomed-Lab/FAIRaman"
 
 [tool.setuptools.packages.find]
-where = ["src"]
 include = ["fairaman*"]
 
 [tool.setuptools]
