@@ -14,6 +14,11 @@ from fairaman import COORDINATE_MODE_REGULAR, COORDINATE_MODE_POINTS
 SUPPORTED_DELIMITERS = (None, ",", ";")
 
 def process_txt_spectrum(txt_path: Path) -> dict:
+       data = _process_txt_spectrum_inner(txt_path)
+       data["txt_path"] = txt_path
+       return data
+
+def _process_txt_spectrum_inner(txt_path: Path) -> dict:
     """
     Import ASCII/CSV → FAIRaman canonical dictionary.
 
