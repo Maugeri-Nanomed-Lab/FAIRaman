@@ -4,19 +4,17 @@ FAIRaman automatically recognizes commonly used metadata field names and maps th
 
 This allows users to import metadata from Excel, CSV or TXT files without manually renaming every column.
 
+This document covers only how input column names are recognised. For the meaning, expected values and HDF5 location of each field, see the reference specification [`metadata_spec.md`](metadata_spec.md).
+
 ---
 
 ## Matching rules
 
 Before attempting a match, FAIRaman normalizes field names by:
 
+- removing accents (`età` → `eta`);
 - converting names to lowercase;
-- removing spaces;
-- removing underscores (`_`);
-- removing hyphens (`-`);
-- removing dots (`.`);
-- removing parentheses;
-- removing accents and special characters.
+- removing every character that is not a letter or a digit (spaces, `_`, `-`, `.`, parentheses and any other symbol).
 
 For example, all of the following are interpreted as equivalent:
 
@@ -24,12 +22,23 @@ For example, all of the following are interpreted as equivalent:
 sample_id
 Sample ID
 sample-id
-SAMPLE.sample_id
+SAMPLE_ID
 ```
+
+For each column, FAIRaman tries the following steps in order and stops at the first match:
+
+1. technical file-management columns are skipped (see [Fields ignored automatically](#fields-ignored-automatically));
+2. the column name is already a valid FAIRaman HDF5 path (see [Direct HDF5 paths](#direct-hdf5-paths));
+3. the normalized name is a known alias (see [Automatic field mapping](#automatic-field-mapping));
+4. the normalized name matches a complete HDF5 path;
+5. the normalized name matches the last element of exactly one HDF5 path (see [Automatic basename matching](#automatic-basename-matching));
+6. otherwise the column is set to `Do not map`.
 
 ---
 
 ## Automatic field mapping
+
+This table mirrors `_METADATA_ALIASES_RAW` in `fairaman/metadata_management.py`. When an alias is added or changed in the code, update this table as well.
 
 | Accepted input names | FAIRaman HDF5 path |
 |---|---|
@@ -41,8 +50,9 @@ SAMPLE.sample_id
 | `orcid`, `author_id` | `PROJECT.author_id` |
 | `license`, `licence`, `data_license` | `PROJECT.data_license` |
 | `access`, `accessibility` | `PROJECT.accessibility` |
+| `contact` | `PROJECT.contact_information` |
 | `keyword`, `keywords` | `PROJECT.keywords` |
-| `sample`, `sample_id`, `campione` | `SAMPLE.sample_id` |
+| `sample`, `sample_id`, `campione`, `id_campione` | `SAMPLE.sample_id` |
 | `sample_provenance`, `provenance` | `SAMPLE.SAMPLE_INFO.sample_provenance` |
 | `sample_type`, `tipo_campione`, `tipocampione` | `SAMPLE.SAMPLE_INFO.sample_type` |
 | `detailed_sample_type` | `SAMPLE.SAMPLE_INFO.detailed_sample_type` |
@@ -68,7 +78,7 @@ SAMPLE.sample_id
 | `start_time` | `ENTRY.start_time` |
 | `data_type` | `ENTRY.data_type` |
 | `exposure`, `exposure_time`, `integration_time` | `ENTRY.measurement.exposure_time` |
-| `exposure_time_units` | `ENTRY.measurement.exposure_time_units` |
+| `exposure_time_units`, `exposure_units` | `ENTRY.measurement.exposure_time_units` |
 | `substrate` | `ENTRY.measurement.substrate` |
 | `accumulation`, `accumulations`, `accumulation_count` | `ENTRY.measurement.accumulation_count` |
 | `instrument`, `instrument_name` | `ENTRY.instrument.name` |

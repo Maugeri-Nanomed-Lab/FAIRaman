@@ -128,30 +128,18 @@ def _write_nexus_structure(h5grp: h5py.Group, schema: dict, data_dict: dict,
                 elif val is not None and val != "":
                     _write_dataset(grp, field, val)
 
-def add_content_hash(f, name="HASH", algorithm="sha256"):
-    """Compute a hash of all datasets in an open HDF5 file and store it as one root dataset."""
+def add_content_hash(f, source_path, name="HASH", algorithm="sha256"):
+    """Hash the original source file (.wdf or .txt) and store the result in the open HDF5 file."""
     if name in f:
         del f[name]                             # remove an older hash
 
-    names = []
-    f.visititems(lambda n, o: names.append(n) if isinstance(o, h5py.Dataset) else None)
-
     h = hashlib.new(algorithm)
-    for ds_name in sorted(names):               # sorted -> same order every time
-        ds = f[ds_name]
-        h.update(f"{ds_name}|{ds.shape}".encode("utf-8"))
-
-        if h5py.check_string_dtype(ds.dtype) is not None:      # text datasets
-            for v in np.atleast_1d(ds[()]).ravel().tolist():
-                h.update(v if isinstance(v, bytes) else str(v).encode("utf-8"))
-                h.update(b"\0")
-        else:                                                  # numeric datasets
-            dtype = ds.dtype.newbyteorder("<")                 # platform independent
-            h.update(dtype.str.encode("utf-8"))
-            h.update(np.ascontiguousarray(ds[()], dtype=dtype).tobytes())
+    with open(source_path, "rb") as fh:
+        for blocco in iter(lambda: fh.read(1024 * 1024), b""):
+            h.update(blocco)
 
     digest = h.hexdigest()
-    f.create_dataset(name, data=digest)         # same style as "version FAIRaman"
+    f.create_dataset(name, data=digest)
     return digest
 
 def write_hdf5_nexus(out_path: Path, data: dict, metadata: dict) -> None:
@@ -333,7 +321,9 @@ def write_hdf5_nexus(out_path: Path, data: dict, metadata: dict) -> None:
         f.attrs["source_format"]    = data.get("source_format", "unknown")
         f.create_dataset("version FAIRaman", data=FAIRAMAN_VERSION)
 
-        add_content_hash(f)        # <-- new, must stay the last line
+        source_path = data.get("wdf_path") or data.get("txt_path")
+        if source_path:
+            add_content_hash(f, source_path)  
      
 def export_csv(data: dict, out_path: Path) -> None:
 
