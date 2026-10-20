@@ -58,6 +58,9 @@ data_license: CC BY 4.0
 #     Allowed values: open | restricted | embargoed | closed
 accessibility: restricted
 
+# [M] Contact information (Email)
+contact: carlo.morasso@icsmaugeri.it
+
 # [R] Comma-separated (or semicolon-separated) keywords describing the content
 #     Example: breast cancer, FFPE, Raman spectroscopy, diagnosis
 keywords: cancer, human tissue, OCT

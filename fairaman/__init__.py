@@ -14,7 +14,7 @@ For programmatic use (scripts, notebooks, other GUIs), prefer the pure
 
 # ── Package version ────────────────────────────────────────────────────────
 # Single source of truth for the version. Bump this on every release.
-__version__ = "1.5.1"
+__version__ = "1.5.3"
 
 # Keep this name too, since the codebase references FAIRAMAN_VERSION
 # in several places (e.g. written into HDF5 metadata).
